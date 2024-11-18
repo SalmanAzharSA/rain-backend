@@ -1,0 +1,238 @@
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,600;0,700;0,800;1,900&family=Rajdhani:wght@300;400;500;600;700&display=swap");
+
+
+* {
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+}
+
+body {
+    background: #1E1E1E;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: "Rajdhani", sans-serif;
+}
+
+.reset {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.mainlogo .logo {
+    /* width: 403px;
+    height: 51px; */
+    margin-bottom: 35px;
+}
+
+.mainreset {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 52px;
+    gap: 20px;
+    background: #191B21;
+    border-radius: 10px;
+
+}
+.outerbtn-green-btnonewidth {
+    height: 44px;
+    background: #0b3704 !important;
+    border-radius: 4px;
+    cursor: pointer;
+    padding: 1px;
+    width: 80% !important;
+}
+.innerbtn {
+    height: 38px;
+    background: linear-gradient(180deg, #69c05a 0%, #469239 100%);
+    box-shadow: 0px 2px 0px #35762a;
+    border-radius: 3px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    padding: 1px;
+    border-bottom: 2px solid #469239;
+
+
+}
+.btnspan:hover {
+        
+    height: 28px;
+    transition: 0.7s;
+
+}
+.btnspan {
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.27) 100%);
+    filter: drop-shadow(0px 1px 1px rgba(0, 0, 0, 0.01));
+    border-radius: 5px;
+    height: 17px;
+    position: absolute;
+    width: 100%;
+    top: 2px;
+    cursor: pointer;
+}
+ .btntext {
+    font-style: normal;
+    font-size: 16px !important;
+    line-height: 100%;
+    text-transform: uppercase;
+    color: #ffffff;
+    text-shadow: 0px 1px 0px #00000040;
+    margin: 0px 10px;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.mainhead {
+    margin-bottom: 20px;
+    font-style: normal;
+    font-weight: 700;
+    font-size: 30px;
+    line-height: 100%;
+    text-align: center;
+    text-transform: uppercase;
+    color: #FFFFFF;
+    font-family: 'Rajdhani';
+}
+.sorry {
+    font-family: 'Rajdhani';
+    font-style: normal;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 20px;
+    text-align: center;
+    color: #898989;
+}
+
+.resetbtn {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 18px;
+    background: #5bc4e2;
+    width: 100%;
+    font-weight: 800;
+    font-size: 16px;
+    line-height: 18px;
+    text-align: center;
+    color: #ffffff;
+    border: none;
+    margin-top: 23px;
+    font-family: "Rajdhani", sans-serif;
+}
+
+a {
+    width: 100%;
+    text-decoration: none;
+}
+
+.text-field {
+    position: relative;
+    width: 100%;
+}
+
+.password {
+    display: inline-block;
+    background: transparent;
+    border: 1.5px solid #333333;
+    width: 100%;
+    padding: 16px 15px;
+    outline: none;
+    font-size: 20px;
+    color: #ffffff;
+    margin-bottom: 22px;
+}
+
+/* .error {
+    display: inline-block;
+    background: #000000;
+    border: 1.5px solid #CC0000;
+    width: 100%;
+    padding: 16px 15px;
+    outline: none;
+    font-size: 20px;
+    color: #CC0000;
+    letter-spacing: 2px;
+} */
+
+label {
+    font-style: normal;
+    font-weight: 800;
+    font-size: 12px;
+    line-height: 110%;
+    color: #333333;
+    position: absolute;
+    pointer-events: none;
+    left: 10px;
+    top: 23px;
+    transition: 0.2s;
+}
+
+.passpara {
+    font-family: "Rajdhani", sans-serif;
+    font-style: normal;
+    font-weight: 600;
+    font-size: 14px;
+    line-height: 19px;
+    color: #ffffff;
+    margin-bottom: 6px;
+    margin-top: 18px;
+}
+
+.list {
+    margin-bottom: 18px;
+}
+
+.passli {
+    font-family: "Rajdhani", sans-serif;
+    font-style: normal;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 19px;
+    color: #828282;
+    list-style-position: inside;
+    margin-bottom: 2px;
+}
+
+.password:focus ~ label,
+.password:valid ~ label {
+    top: -7px;
+    left: 15px;
+    font-size: small;
+    padding: 0 5px 0 5px;
+    background: #1e1e1e;
+}
+
+.eyeimg {
+    position: absolute;
+    right: 15px;
+    top: 18px;
+}
+
+/* .error:focus~label,
+.error:valid~label {
+    top: -7px;
+    left: 15px;
+    font-size: small;
+    padding: 0 5px 0 5px;
+    background: #000000;
+    color: #CC0000;
+} */
+
+@media (max-width: 600px) {
+    .mainhead {
+        font-size: 20px;
+    }
+
+    .mainlogo .logo {
+        width: 320px;
+    }
+}

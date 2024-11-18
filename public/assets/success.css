@@ -1,0 +1,129 @@
+@font-face {
+    font-family: 'akira';
+    src: url('font/Akira\ Expanded\ Demo.ttf');
+}
+
+* {
+    margin: 0px;
+    padding: 0px;
+    box-sizing: border-box;
+}
+
+body {
+    background: #0B0B0B;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    font-family: 'akira' !important;
+}
+
+.success {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+}
+
+.mainlogo .logo {
+    width: 403px;
+    height: 51px;
+    margin-bottom: 40px;
+}
+
+.tick {
+    margin-bottom: 27px;
+    width: 90px;
+    height: 90px;
+}
+
+.mainreset {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 45px 40px;
+    max-width: 574px;
+    background: #1E1E1E;
+    border-radius: 10px;
+}
+
+.mainhead {
+    font-style: normal;
+    font-weight: 800;
+    font-size: 30px;
+    line-height: 28px;
+    color: #5BC4E2;
+    text-align: left;
+    margin-bottom: 10px;
+}
+
+.mainpara {
+    font-family: 'Nunito Sans', sans-serif;
+    font-style: normal;
+    font-weight: 800;
+    font-size: 18px;
+    line-height: 28px;
+    color: #797979;
+}
+
+.maininput {
+    padding: 16px 15px;
+    background: none;
+    border: 1.5px solid #333333;
+    width: 100%;
+    margin-bottom: 22px;
+    color: #FFFFFF;
+}
+
+.maininput:focus {
+    outline: none;
+}
+
+.maininput::placeholder {
+    font-family: 'Akira Expanded';
+    font-style: normal;
+    font-weight: 800;
+    font-size: 12px;
+    line-height: 22px;
+    color: #333333;
+}
+
+.resetbtn {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    padding: 18px;
+    background: #5BC4E2;
+    width: 100%;
+    font-family: 'Akira Expanded';
+    font-style: normal;
+    font-weight: 800;
+    font-size: 16px;
+    line-height: 18px;
+    text-align: center;
+    color: #FFFFFF;
+    border: none;
+    margin-top: 17px;
+}
+
+a {
+    width: 100%;
+    text-decoration: none;
+}
+
+@media(max-width:600px) {
+    .mainhead {
+        font-size: 20px;
+    }
+
+    .mainlogo .logo {
+        width: 320px;
+    }
+    .mainpara{
+        font-size: 15px;
+    }
+    .mainreset {
+        padding: 45px 35px;
+    }
+}
