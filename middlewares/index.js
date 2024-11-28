@@ -16,11 +16,11 @@ module.exports.applyMiddlewares = (app) => {
 
   if (process.env.NODE_ENV !== "production") {
     app.use(
-      "auth/api-docs",
+      "/auth/api-docs",
       swaggerUi.serve,
       swaggerUi.setup(swaggerDocument, {
         customCss: ".swagger-ui .topbar { display: none }",
-        customSiteTitle: `Greenpad Docs`,
+        customSiteTitle: `Rain Docs`,
         customfavIcon: "/images/favicon.png",
       })
     );

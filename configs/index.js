@@ -1,3 +1,4 @@
+
 module.exports = {
   baseUrl: process.env.BASE_URL,
   database: {
@@ -19,7 +20,7 @@ module.exports = {
       secret: process.env.JWT_EMAIL_VERIFICATION_TOKEN_SECRET,
       ttl: 1800,
     },
-    issuer: "greenpad.com",
+    issuer: "rain.com",
   },
   redis: {
     host: process.env.REDIS_HOST,

@@ -9,7 +9,19 @@ const app = express();
 
 (async () => {
   // initialize redis store
-  await redisClient.connect();
+
+
+  // Check if Redis should be used
+  if (process.env.USE_REDIS === "true") {
+    console.log("Initializing Redis...");
+    await redisClient.connect();
+    console.log("Redis initialized successfully.");
+  } else {
+    console.log("Redis initialization skipped.");
+  }
+
+
+  // await redisClient.connect();
   // initialize database
   require("./helpers/db");
   // register all event subscribers

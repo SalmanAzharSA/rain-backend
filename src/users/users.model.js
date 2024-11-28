@@ -7,44 +7,46 @@ const usersSchema = new mongoose.Schema(
       type: String,
       trim: true,
       length: 42,
-      // required: true,
+      required: true,
       unique: true,
     },
-    profileImage: {
-      type: String,
-      trim: true,
-      default: configs.defaultAvatarImage,
-    },
-    nickName: {
+
+    name: {
       type: String,
       trim: true,
     },
-    email: {
-      type: String,
-      trim: true,
-    },
-    isEmailVerified: {
-      type: Boolean,
-      default: false,
-    },
-    role: {
-      type: String,
-      trim: true,
-      default: "user",
-    },
-    password: {
-      type: String,
-      trim: true,
-    },
-    emailVerificationToken: {
-      type: String,
-      trim: true,
-      unique: true,
-    },
-    isSocial: {
-      type: Boolean,
-      default: false,
-    },
+    bio: { type: String, default: '' },
+    // profileImage: {
+    //   type: String,
+    //   trim: true,
+    //   default: configs.defaultAvatarImage,
+    // },
+    // email: {
+    //   type: String,
+    //   trim: true,
+    // },
+    // isEmailVerified: {
+    //   type: Boolean,
+    //   default: false,
+    // },
+    // role: {
+    //   type: String,
+    //   trim: true,
+    //   default: "user",
+    // },
+    // password: {
+    //   type: String,
+    //   trim: true,
+    // },
+    // emailVerificationToken: {
+    //   type: String,
+    //   trim: true,
+    //   unique: true,
+    // },
+    // isSocial: {
+    //   type: Boolean,
+    //   default: false,
+    // },
   },
   { timestamps: true }
 );

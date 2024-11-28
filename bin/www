@@ -7,7 +7,7 @@
 const debug = require("debug");
 const http = require("http");
 const app = require("../app.js");
-debug("Greenpad:server");
+debug("Rain:server");
 /**
  * Get port from environment and store in Express.
  */

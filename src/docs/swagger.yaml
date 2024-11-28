@@ -1,96 +1,95 @@
 openapi: 3.0.3
 info:
-  title: Greenpad
-  description: Greenpad Api Documentation
+  title: Rain
+  description: Rain API's Documentation
   version: 1.0.0
 
 servers:
-  - url: http://localhost:8060
+  - url: http://localhost:3000
     description: Local server
 
 tags:
   - name: Auth
-    description: Auth
+    description: Authentication Endpoints
   - name: Users
-    description: Users
+    description: User Endpoints
 
-paths:
 components:
   securitySchemes:
     bearerAuth:
       type: http
-      in: header
       scheme: bearer
       bearerFormat: JWT
+
   responses:
-    Forbidden:
-      summary: Forbidden
-      type: object
-      properties:
-        statusCode:
-          type: integer
-          example: 403
-        message:
-          type: string
-          examples:
-            emailNotVerified:
-              value: "Pending Email verification"
-            notAllowed:
-              value: "You don't have permission to access this endpoint"
-        details:
-          example: null
-    BadRequest:
-      summary: Bad Request (Api Payload validation failed)
-      type: object
-      properties:
-        statusCode:
-          type: integer
-          example: 400
-        message:
-          type: string
-          example: Validation Failed
-        details:
-          type: array
-          items:
+    UnauthorizedError:
+      description: Access token is missing or invalid
+      content:
+        application/json:
+          schema:
             type: object
             properties:
-              "{payload_field}":
+              message:
                 type: string
-                example: "{payload_field validation error message}"
-    UserNotFound:
-      summary: User not found
-      type: object
-      properties:
-        statusCode:
-          type: integer
-          example: 404
-        message:
-          type: string
-          example: User not found
-        details:
-          type: string
-          example: null
-    UnAuthorized:
-      summary: UnAuthorized
-      type: object
-      properties:
-        statusCode:
-          type: integer
-          example: 401
-        message:
-          type: string
-          example: Jwt expired/invalid
-        details:
-          example: null
-    ServerError:
-      summary: Internal Server Error
-      type: object
-      properties:
-        statusCode:
-          type: integer
-          example: 500
-        message:
-          type: string
-          example: Something went wrong
-        details:
-          example: nul
+                example: Unauthorized
+
+security:
+  - bearerAuth: []
+
+paths:
+  /auth/login:
+    post:
+      tags:
+        - Auth
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  example: user@example.com
+                password:
+                  type: string
+                  example: password123
+      responses:
+        200:
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR..."
+
+  /users/me:
+    get:
+      tags:
+        - Users
+      summary: Get current user profile
+      security:
+        - bearerAuth: []
+      responses:
+        200:
+          description: Success
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    example: "60d0fe4f5311236168a109ca"
+                  name:
+                    type: string
+                    example: John Doe
+                  email:
+                    type: string
+                    example: john@example.com
+        401:
+          $ref: "#/components/responses/UnauthorizedError"

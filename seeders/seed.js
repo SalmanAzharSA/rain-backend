@@ -15,7 +15,7 @@ async function connectDB() {
 const program = new Command();
 
 program
-  .name("Greenpad Database Seeder")
+  .name("Rain Database Seeder")
   .description("Seed Database")
   .version("0.1.0");
 

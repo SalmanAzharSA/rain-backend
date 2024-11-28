@@ -115,7 +115,7 @@ exports.verifyEmailConfirmationToken = (req, res, next) => {
             ? "Email Confirmation Token expired"
             : err.message;
         res.status(StatusCodes.GONE).render("pages/users/resource-expired", {
-          title: "Greenpad Email Confirmation Token expired",
+          title: "Rain Email Confirmation Token expired",
           message,
         });
         return;

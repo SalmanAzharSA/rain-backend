@@ -42,7 +42,7 @@ exports.removeMultipleFile = async (keys) => {
 };
 
 exports.extractKeyFromUrl = function (url) {
-  return url.split("amazonaws.com/greenpad/")[1];
+  return url.split("amazonaws.com/rain/")[1];
 };
 
 exports.multipartUpload = async (filename) => {
@@ -109,7 +109,7 @@ exports.getSignedUrl = async (preSignedUrlDto) => {
 };
 
 extractKeyFromUrl = function (url) {
-  return url.split("amazonaws.com/greenpad/")[1];
+  return url.split("amazonaws.com/rain/")[1];
 };
 
 extractKeysFromUrlArray = function (urls) {
