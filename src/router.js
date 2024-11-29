@@ -4,6 +4,7 @@ const usersRouter = require("./users/users.router");
 const investmentsRouter = require('./investments/investment.router')
 const poolsRouter = require('./pools/pool.router')
 const votesRouter = require('./votes/vote.router')
+const metadataRouter = require('./metadata/metadata.router')
 
 // exports.initRoutes = (app) => {
 //   app.use("/auth", globalRouter);
@@ -17,9 +18,13 @@ const votesRouter = require('./votes/vote.router')
 
 exports.initRoutes = (app) => {
   app.use("/auth", authRouter);
-
+  /*----------------------------------*/
   app.use("/users", usersRouter);
   app.use("/investments", investmentsRouter);
   app.use("/pools", poolsRouter);
+  app.use("/metadata", (req, res, next) => {
+    console.log("IN metadata ROUTE")
+    next();
+  }, metadataRouter);
   app.use("/votes", votesRouter);
 };

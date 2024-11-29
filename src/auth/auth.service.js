@@ -4,9 +4,8 @@ const JWT = require("../common/auth/jwt");
 const configs = require("../../configs");
 const redisClient = require("../../helpers/redis");
 const jwt = require("jsonwebtoken");
-const utils = require('ethereumjs-util');
+const utils = require("ethereumjs-util");
 const { ethers } = require("ethers");
-
 
 exports.signin = async (signInDto, result = {}) => {
   try {
@@ -66,11 +65,11 @@ async function createTokens(createTokensDto, result = {}) {
     // store refresh token in redis
     rememberMe
       ? await redisClient.set(user._id.toString(), refreshToken, {
-        EX: configs.jwt.refreshToken.redisRemeberMeTTL,
-      })
+          EX: configs.jwt.refreshToken.redisRemeberMeTTL,
+        })
       : await redisClient.set(user._id.toString(), refreshToken, {
-        EX: configs.jwt.refreshToken.redisTTL,
-      });
+          EX: configs.jwt.refreshToken.redisTTL,
+        });
 
     result.data = {
       user: {
@@ -86,14 +85,15 @@ async function createTokens(createTokensDto, result = {}) {
   }
 }
 
-
+exports.createTokens = createTokens;
 
 exports.registerwithWalletAddress = async (userData, sign, result = {}) => {
   try {
     const { walletAddress, name, bio, sign, object } = userData;
 
-
-    let user = await usersService.findUser({ walletAddress: walletAddress.toLowerCase() });
+    let user = await usersService.findUser({
+      walletAddress: walletAddress.toLowerCase(),
+    });
     if (user) {
       // var token = jwt.sign(
       //   {
@@ -102,7 +102,7 @@ exports.registerwithWalletAddress = async (userData, sign, result = {}) => {
       //     displayName: user.name,
       //   },
       //   process.env.JWT_ACCESS_TOKEN_SECRET,
-      //   { expiresIn: '2h' }
+      //   { expiresIn: '8h' }
       // );
       // result.data = { status: 200, user: user, token: token, message: "User Logged In" };
       result.error = { status: 409, message: "User already exists" };
@@ -110,9 +110,6 @@ exports.registerwithWalletAddress = async (userData, sign, result = {}) => {
     }
 
     if (walletAddress) {
-
-
-
       const signerAddr = await ethers.utils.verifyMessage(object.message, sign);
       if (signerAddr !== walletAddress) {
         console.log("message not verified:", object.message, sign);
@@ -121,19 +118,17 @@ exports.registerwithWalletAddress = async (userData, sign, result = {}) => {
       }
       console.log("message verified:", object.message, signerAddr);
 
-
       // console.log("Recovered address (adr):", adr);
       // console.log("Provided wallet address:", walletAddress.toLowerCase());
 
       if (signerAddr.toLowerCase() === walletAddress.toLowerCase()) {
-
         const user = await usersService.registerwithWalletAddress({
           walletAddress: walletAddress.toLowerCase(),
           name: name,
-          bio: bio || '',
+          bio: bio || "",
         });
 
-        console.log(user, "useruseruseruser")
+        console.log(user, "useruseruseruser");
 
         var token = jwt.sign(
           {
@@ -142,13 +137,12 @@ exports.registerwithWalletAddress = async (userData, sign, result = {}) => {
             displayName: user.data.name,
           },
           process.env.JWT_ACCESS_TOKEN_SECRET,
-          { expiresIn: '2h' }
+          { expiresIn: "8h" }
         );
 
         result.data = { user, token };
         return result;
       } else {
-
         result.error = { status: 401, message: "Sign not verified" };
         return result;
       }
@@ -156,13 +150,11 @@ exports.registerwithWalletAddress = async (userData, sign, result = {}) => {
       result.error = { status: 401, message: "Wallet address is not correct" };
       return result;
     }
-
   } catch (error) {
-    result.error = { status: 500, message: "Error during registration: " + error.message };
+    result.error = {
+      status: 500,
+      message: "Error during registration: " + error.message,
+    };
     return result;
   }
 };
-
-
-
-exports.createTokens = createTokens;

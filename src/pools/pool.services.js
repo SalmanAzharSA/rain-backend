@@ -1,47 +1,76 @@
-const Pool = require('./pool.model');
-const Vote = require('../votes/vote.model');
+const Pool = require("./pool.model");
+const Vote = require("../votes/vote.model");
+const createError = require("http-errors");
+const { StatusCodes } = require("http-status-codes");
 
-exports.createPool = async (poolDto, result = {}) => {
-    try {
-        const { question, options, creator, isPrivate } = poolDto;
-        const pool = new Pool({
-            question,
-            options,
-            creator,
-            isPrivate,
-        });
+exports.createPool = async (createPoolDto, userId) => {
+  try {
+    const {
+      question,
+      isPrivate,
+      liquidityMax,
+      questionImage,
+      options,
+      tags,
+      startDate,
+      poolTypeData,
+    } = createPoolDto;
+    // Validate that required fields are present for both types of pools
+    // if (!poolTypeData) {
+    //     throw createError(StatusCodes.BAD_REQUEST, 'Pool type data is required.');
+    // }
+    const newPool = new Pool({
+      question,
+      isPrivate,
+      liquidityMax,
+      questionImage,
+      options,
+      tags,
+      startDate,
+      poolTypeData, // This will pass the poolTypeData from the body directly.
+      creator: userId, // The userId passed from the controller
+    });
 
-        await pool.save();
+    // console.log(newPool, "newPool");
 
-        result.data = pool;
-    } catch (ex) {
-        result.ex = ex;
-    } finally {
-        return result;
-    }
+    // Save the new pool to the database
+    await newPool.save();
+
+    return newPool;
+  } catch (error) {
+    console.log(error, "ERRRR");
+    throw createError(
+      StatusCodes.INTERNAL_SERVER_ERROR,
+      `Error creating pool: ${error.message}`
+    );
+  }
 };
 
-
-exports.declareWinner = async (poolId, winnerOption, creatorId, result = {}) => {
-    try {
-        const pool = await Pool.findById(poolId);
-        if (!pool) {
-            throw new Error('Pool not found');
-        }
-
-        if (pool.creator.toString() !== creatorId) {
-            throw new Error('You are not authorized to declare the winner');
-        }
-
-        pool.winner = winnerOption;
-        await pool.save();
-
-        result.data = pool;
-    } catch (ex) {
-        result.ex = ex;
-    } finally {
-        return result;
+exports.declareWinner = async (
+  poolId,
+  winnerOption,
+  creatorId,
+  result = {}
+) => {
+  try {
+    const pool = await Pool.findById(poolId);
+    if (!pool) {
+      throw new Error("Pool not found");
     }
+
+    if (pool.creator.toString() !== creatorId) {
+      throw new Error("You are not authorized to declare the winner");
+    }
+
+    pool.winner = winnerOption;
+    await pool.save();
+
+    result.data = pool;
+  } catch (ex) {
+    result.ex = ex;
+  } finally {
+    return result;
+  }
 };
 
 /*
@@ -76,59 +105,88 @@ exports.getPoolList = async (getPoolsDto, result = {}) => {
 };
 */
 
-
 exports.getPublicPoolList = async (getPoolsDto, result = {}) => {
-    try {
-        const { limit, offset } = getPoolsDto;
+  try {
+    const { limit = 10, offset = 1, tag } = getPoolsDto;
+    console.log(getPoolsDto, "getPoolsDtoInsercice");
 
-        // Query for public pools where isPrivate is false
-        const query = { isPrivate: false };
-
-        const [pools, count] = await Promise.all([
-            Pool.find(query)
-                .skip((offset - 1) * limit)  // Pagination
-                .limit(limit)
-                .sort({ createdAt: -1 }),  // Sort by creation date
-            Pool.countDocuments(query),  // Count total public pools
-        ]);
-
-        result.data = {
-            pools,
-            count,
-            pages: Math.ceil(count / limit),  // Calculate total pages
-        };
-    } catch (ex) {
-        result.ex = ex;
-    } finally {
-        return result;
+    const query = { isPrivate: false };
+    if (tag) {
+      query.tags = { $in: [new RegExp(tag, "i")] };
     }
+    // if (tag) {
+    //   query.$or = [
+    //     { tags: { $in: [tag] } },
+    //     { tags: { $in: [new RegExp(tag, "i")] } },
+    //   ];
+    // }
+
+    const [pools, count] = await Promise.all([
+      Pool.find(query)
+        .skip((offset - 1) * limit)
+        .limit(limit)
+        // .sort({ [sortBy]: createdAt - 1 }), // Sort by `sortBy` field (default is createdAt)
+        .sort({ createdAt: -1 }),
+
+      Pool.countDocuments(query),
+    ]);
+
+    result.data = {
+      pools,
+      count,
+      pages: Math.ceil(count / limit),
+    };
+  } catch (ex) {
+    result.ex = ex;
+  } finally {
+    return result;
+  }
 };
 
 exports.getPrivatePoolList = async (getPoolsDto, result = {}) => {
-    try {
-        const { limit, offset } = getPoolsDto;
+  try {
+    const { limit = 10, offset = 1, tag } = getPoolsDto;
 
-        // Query for private pools where isPrivate is true
-        const query = { isPrivate: true };
+    // Query for private pools where isPrivate is true
+    const query = { isPrivate: true };
 
-        const [pools, count] = await Promise.all([
-            Pool.find(query)
-                .skip((offset - 1) * limit)  // Pagination
-                .limit(limit)
-                .sort({ createdAt: -1 }),  // Sort by creation date
-            Pool.countDocuments(query),  // Count total private pools
-        ]);
-
-        result.data = {
-            pools,
-            count,
-            pages: Math.ceil(count / limit),  // Calculate total pages
-        };
-    } catch (ex) {
-        result.ex = ex;
-    } finally {
-        return result;
+    if (tag) {
+      query.tags = { $in: [new RegExp(tag, "i")] };
     }
+
+    const [pools, count] = await Promise.all([
+      Pool.find(query)
+        .skip((offset - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+      Pool.countDocuments(query),
+    ]);
+
+    result.data = {
+      pools,
+      count,
+      pages: Math.ceil(count / limit),
+    };
+  } catch (ex) {
+    result.ex = ex;
+  } finally {
+    return result;
+  }
 };
 
+exports.getPoolById = async ({ id }, result = {}) => {
+  try {
+    const pool = await Pool.findById(id).lean();
 
+    if (pool) {
+      if (pool.poolTypeData && pool.poolTypeData.length === 0) {
+        delete pool.poolTypeData;
+      }
+      result.data = pool;
+    }
+  } catch (ex) {
+    result.ex = ex;
+  } finally {
+    return result;
+  }
+};

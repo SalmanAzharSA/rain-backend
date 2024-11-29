@@ -1,49 +1,73 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
 
-const poolSchema = new mongoose.Schema({
-    title: {
-        type: String,
-        required: true
+// Subschema for Public Pools
+const publicPoolSchema = new mongoose.Schema({
+  minimumOracles: { type: Number, required: true },
+  maximumOracles: { type: Number, required: true },
+  rewardType: {
+    type: String,
+    enum: ["fixedAmount", "baseAmountPlusBonus"],
+    required: true,
+  },
+  rewardDetails: {
+    fixedAmount: {
+      rewardAmountPerOracle: { type: Number },
     },
-    options: [{
-        type: String,
-        required: true
-    }],
-    isPrivate: {
-        type: Boolean,
-        default: false
+    baseAmountPlusBonus: {
+      baseAmountPerOracle: { type: Number },
+      associatedDealSize: { type: Number },
+      bonusPercentage: { type: Number },
     },
-    creator: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'User',
-        required: true
-    },
-    // Store investments as part of the vote (investment is considered as vote weight)
-    votes: [{
-        user: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'User',
-            required: true
-        },
-        investments: [{
-            option: {
-                type: String,
-                required: true
-            },
-            amount: {
-                type: Number,  // Investment amount in USDT or another currency
-                required: true
-            }
-        }]
-    }],
-    winner: {
-        type: String,  // Stores the winner option based on total investments
-        default: null
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
+  },
+  timeZone: { type: String, required: true },
+  duration: { type: Number, required: true }, // duration must be in days
 });
 
-module.exports = mongoose.model('Pool', poolSchema);
+const poolSchema = new mongoose.Schema(
+  {
+    questionImage: { type: String, required: true },
+    question: { type: String, required: true },
+    options: [
+      {
+        optionName: { type: String, required: true },
+        optionImage: { type: String },
+      },
+    ],
+    tags: {
+      type: [String],
+      validate: [arrayLimit, "Tags cannot exceed 8"],
+    },
+    creator: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+    isPrivate: { type: Boolean, default: false },
+    liquidityMax: { type: Number, required: true },
+    startDate: { type: Date, required: true },
+
+    poolTypeData: [publicPoolSchema],
+  },
+  { timestamps: true }
+);
+
+// Validator for tags array (max 8 tags)
+function arrayLimit(val) {
+  return val.length <= 8;
+}
+// Pre-save hook to modify/remove fields based on the pool type (public/private)
+poolSchema.pre("save", function (next) {
+  if (this.isPrivate) {
+    this.poolTypeData = undefined;
+  }
+
+  if (!this.isPrivate) {
+    if (!this.poolTypeData || this.poolTypeData.length === 0) {
+      throw new Error("Pool type data is required for public pools.");
+    }
+  }
+
+  next();
+});
+
+module.exports = mongoose.model("Pool", poolSchema);
