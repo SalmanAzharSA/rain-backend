@@ -23,7 +23,6 @@ exports.signin = async (req, res, next) => {
   }
 };
 
-
 // exports.registerUser = async (req, res) => {
 //   try {
 //     const { walletAddress, sign, name } = req.body;
@@ -51,8 +50,7 @@ exports.registerWithWalletAddress = async (req, res, next) => {
   try {
     const { sign, name, bio, object } = req.body;
 
-
-    if (typeof object === 'string') {
+    if (typeof object === "string") {
       object = JSON.parse(object);
     }
     let walletAddress = object.address;
@@ -76,14 +74,18 @@ exports.registerWithWalletAddress = async (req, res, next) => {
       sign,
       name,
       bio,
-      object
+      object,
     };
 
-    const result = await authService.registerwithWalletAddress(registerData, sign);
+    const result = await authService.registerwithWalletAddress(
+      registerData,
+      sign
+    );
 
     if (result.error) {
-
-      return res.status(result.error.status).json({ msg: result.error.message });
+      return res
+        .status(result.error.status)
+        .json({ msg: result.error.message });
     }
     return res.status(200).json({
       status: true,
@@ -91,10 +93,47 @@ exports.registerWithWalletAddress = async (req, res, next) => {
       token: result.data.token,
       user: result.data.user,
     });
-
   } catch (error) {
     next(error);
   }
 };
 
+exports.loginWithWalletAddress = async (req, res, next) => {
+  try {
+    const { sign, object } = req.body;
 
+    if (typeof object === "string") {
+      object = JSON.parse(object);
+    }
+
+    let walletAddress = object.address;
+
+    // Validate required fields
+    if (!(sign && walletAddress)) {
+      return res.status(400).send("Sign and wallet address are required");
+    }
+
+    const loginData = {
+      walletAddress,
+      sign,
+      object,
+    };
+
+    const result = await authService.loginWithWalletAddress(loginData, sign);
+
+    if (result.error) {
+      return res
+        .status(result.error.status)
+        .json({ msg: result.error.message });
+    }
+
+    return res.status(200).json({
+      status: true,
+      msg: "User Logged In",
+      token: result.data.token,
+      user: result.data.user,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

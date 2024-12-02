@@ -11,8 +11,8 @@ const PASSPORT_STRATEGIES = require("../common/auth/constants/passport.strategie
 router.post(
   "/signin",
   (req, res, next) => {
-    console.log('in sigin ROUTE AUTH')
-    next()
+    console.log("in sigin ROUTE AUTH");
+    next();
   },
   [
     validate(authValidation.signin, { keyByField: true }),
@@ -21,12 +21,11 @@ router.post(
   authController.signin
 );
 
-
 router.post(
   "/register-with-walletAddress",
   (req, res, next) => {
-    console.log('register-with-walletAddress')
-    next()
+    console.log("register-with-walletAddress");
+    next();
   },
   [
     // validate(authValidation.registerwithWalletAddress, { keyByField: true }),
@@ -35,5 +34,17 @@ router.post(
   authController.registerWithWalletAddress
 );
 
+router.post(
+  "/login-with-walletAddress",
+  (req, res, next) => {
+    console.log("loginWithWalletAddress");
+    next();
+  },
+  [
+    // validate(authValidation.registerwithWalletAddress, { keyByField: true }),
+    // authWithPassport(PASSPORT_STRATEGIES.local, { session: false }),
+  ],
+  authController.loginWithWalletAddress
+);
 
 module.exports = router;

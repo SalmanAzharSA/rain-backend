@@ -1,10 +1,11 @@
 const globalRouter = require("express").Router();
 const authRouter = require("./auth/auth.router");
 const usersRouter = require("./users/users.router");
-const investmentsRouter = require('./investments/investment.router')
-const poolsRouter = require('./pools/pool.router')
-const votesRouter = require('./votes/vote.router')
-const metadataRouter = require('./metadata/metadata.router')
+const investmentsRouter = require("./investments/investment.router");
+const poolsRouter = require("./pools/pool.router");
+const votesRouter = require("./votes/vote.router");
+const metadataRouter = require("./metadata/metadata.router");
+const commentsRouter = require("./comments/comment.router");
 
 // exports.initRoutes = (app) => {
 //   app.use("/auth", globalRouter);
@@ -22,9 +23,7 @@ exports.initRoutes = (app) => {
   app.use("/users", usersRouter);
   app.use("/investments", investmentsRouter);
   app.use("/pools", poolsRouter);
-  app.use("/metadata", (req, res, next) => {
-    console.log("IN metadata ROUTE")
-    next();
-  }, metadataRouter);
+  app.use("/metadata", metadataRouter);
   app.use("/votes", votesRouter);
+  app.use("/comments", commentsRouter);
 };

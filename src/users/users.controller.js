@@ -72,52 +72,25 @@ exports.createUser = async (req, res, next) => {
   }
 };
 
-exports.login = async function (req, res) {
+exports.findUserBywalletAddress = async (req, res, next) => {
   try {
-    const sign = req.body.sign;
-    let walletAddress = req.body.object.address;
-    let data = await User.findOne({
-      walletAddress: walletAddress.toLowerCase(),
+    const { walletAddress } = req.query;
+
+    const result = await usersService.findUserBywalletAddress(walletAddress);
+
+    if (result.error) {
+      return res.status(StatusCodes.NOT_FOUND).json({
+        statusCode: StatusCodes.NOT_FOUND,
+        message: result.error,
+      });
+    }
+
+    return res.status(StatusCodes.OK).json({
+      statusCode: StatusCodes.OK,
+      message: "User retrieved successfully",
+      data: result.data,
     });
-    if (!data) {
-      return res.status(401).json({ msg: "User Not Found" });
-    }
-    console.log("console.log====> e: ", req.body.object);
-    if (walletAddress) {
-      r = utils.toBuffer(sign.slice(0, 66));
-      s = utils.toBuffer("0x" + sign.slice(66, 130));
-      v = utils.toBuffer("0x" + sign.slice(130, 132));
-      let m = Buffer.from(JSON.stringify(req.body.object));
-
-      const prefix = Buffer.from("\x19Ethereum Signed Message:\n");
-
-      const prefixedMsg = utils.keccak256(
-        Buffer.concat([prefix, Buffer.from(String(m.length)), m])
-      );
-
-      pub = utils.ecrecover(prefixedMsg, v, r, s);
-      adr = "0x" + utils.pubToAddress(pub).toString("hex");
-      console.log("console.log====> e: ", adr, walletAddress);
-      if (adr.toLowerCase() == walletAddress.toLowerCase()) {
-        var token = jwt.sign(
-          {
-            _id: data._id.toString(),
-            walletAddress: walletAddress,
-            displayName: data.firstName,
-          },
-          process.env.JWT_SECRET,
-          { expiresIn: 7200000 }
-        ); // 2 hours
-        return res.status(200).json({ msg: "User LoggedIn", token: token });
-      } else {
-        console.log("console.log====> e: 2nd", adr);
-        return res.status(401).json({ msg: "Sign not verified" });
-      }
-    } else {
-      return res.status(401).json({ msg: "wallet address is not correct" });
-    }
-  } catch (err) {
-    console.log(err);
-    res.status(500).json({ err });
+  } catch (ex) {
+    next(ex);
   }
 };

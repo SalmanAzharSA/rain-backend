@@ -16,4 +16,13 @@ router.get(
   usersController.getUsersList
 );
 
+router.get(
+  "/find-user-by-wallet-address",
+  [
+    validate(usersValidation.getUser, { keyByField: true }),
+    authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
+  ],
+  usersController.findUserBywalletAddress
+);
+
 module.exports = router;

@@ -34,32 +34,31 @@ exports.getUsersList = async (getUsersListsDto, result = {}) => {
   }
 };
 
-
-
-exports.findUser = async (query) => {
+exports.findUserBywalletAddress = async (walletAddress) => {
   try {
-    const user = await User.findOne(query);
-    return user;
-  } catch (error) {
-    throw new Error("Error finding user: " + error.message);
+    const user = await User.findOne({
+      walletAddress: walletAddress.toLowerCase(),
+    });
+
+    if (!user) {
+      return { error: "User doesn't exist" };
+    }
+
+    return { data: user };
+  } catch (ex) {
+    console.error(ex);
+    return { error: ex.message };
   }
 };
 
-// Create a new user
-// exports.createUser = async (userData) => {
-//   try {
-//     const newUser = new User(userData);
-//     await newUser.save();
-//     return newUser;
-//   } catch (error) {
-//     throw new Error("Error creating user: " + error.message);
-//   }
-// };
 exports.registerwithWalletAddress = async (userData, result = {}) => {
   try {
     // Validate required fields
     if (!userData.walletAddress || !userData.name) {
-      result.error = { status: 400, message: "Wallet address and name are required" };
+      result.error = {
+        status: 400,
+        message: "Wallet address and name are required",
+      };
       return result;
     }
 
@@ -75,9 +74,10 @@ exports.registerwithWalletAddress = async (userData, result = {}) => {
   } catch (error) {
     // Log and handle error if creation fails
     console.error("Error creating user:", error.message);
-    result.error = { status: 500, message: "Error creating user: " + error.message };
+    result.error = {
+      status: 500,
+      message: "Error creating user: " + error.message,
+    };
     return result;
   }
 };
-
-

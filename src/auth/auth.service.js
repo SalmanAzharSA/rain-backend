@@ -158,3 +158,48 @@ exports.registerwithWalletAddress = async (userData, sign, result = {}) => {
     return result;
   }
 };
+
+exports.loginWithWalletAddress = async (loginData, sign, result = {}) => {
+  try {
+    const { walletAddress, object } = loginData;
+
+    // Check if the user exists
+    let user = await usersService.findUser({
+      walletAddress: walletAddress.toLowerCase(),
+    });
+
+    if (!user) {
+      result.error = { status: 401, message: "User Not Found" };
+      return result;
+    }
+
+    // Verify the signature
+    const signerAddr = await ethers.utils.verifyMessage(object.message, sign);
+    if (signerAddr !== walletAddress) {
+      console.log("message not verified:", object.message, sign);
+      result.error = { status: 401, message: "Sign not verified" };
+      return result;
+    }
+    console.log("message verified:", object.message, signerAddr);
+
+    // Generate JWT token
+    const token = jwt.sign(
+      {
+        _id: user._id.toString(),
+        walletAddress: walletAddress,
+        displayName: user.name,
+      },
+      process.env.JWT_ACCESS_TOKEN_SECRET,
+      { expiresIn: "8h" }
+    );
+
+    result.data = { user, token };
+    return result;
+  } catch (error) {
+    result.error = {
+      status: 500,
+      message: "Error during login: " + error.message,
+    };
+    return result;
+  }
+};
