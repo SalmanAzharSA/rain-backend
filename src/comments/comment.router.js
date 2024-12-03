@@ -37,8 +37,32 @@ router.get(
 // Route to create comment
 router.post(
   "/create-comment",
-  [authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false })],
+
+  [
+    validate(commentValidation.createComment),
+    authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
+  ],
   commentController.createComment
+);
+
+// Like a comment
+router.post(
+  "/like/:commentId",
+  [
+    validate(commentValidation.likeUnlikeComment),
+    authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
+  ],
+  commentController.likeComment
+);
+
+// Unlike a comment
+router.post(
+  "/unlike/:commentId",
+  [
+    validate(commentValidation.likeUnlikeComment),
+    authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
+  ],
+  commentController.unlikeComment
 );
 
 module.exports = router;

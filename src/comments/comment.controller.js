@@ -93,3 +93,50 @@ exports.commentsListing = async (req, res, next) => {
     next(ex);
   }
 };
+
+exports.likeComment = async (req, res, next) => {
+  try {
+    const { commentId } = req.params;
+    const userId = req.user._id;
+
+    const result = await commentService.likeComment(commentId, userId);
+
+    if (result.error) {
+      return res.status(400).json({
+        statusCode: 400,
+        message: result.error,
+      });
+    }
+
+    return res.status(200).json({
+      statusCode: 200,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.unlikeComment = async (req, res, next) => {
+  try {
+    const { commentId } = req.params; // Comment ID from the URL
+    const userId = req.user._id; // Assuming user ID comes from JWT
+
+    // Call the unlikeComment service
+    const result = await commentService.unlikeComment(commentId, userId);
+
+    if (result.error) {
+      return res.status(400).json({
+        statusCode: 400,
+        message: result.error,
+      });
+    }
+
+    return res.status(200).json({
+      statusCode: 200,
+      message: result.message,
+    });
+  } catch (error) {
+    next(error);
+  }
+};

@@ -46,4 +46,13 @@ router.get(
   poolController.getPoolById
 );
 
+router.get(
+  "/accessPool",
+  [
+    validate(poolValidation.accessCodeValidation, { keyByField: true }),
+    authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
+  ],
+  poolController.accessPool
+);
+
 module.exports = router;

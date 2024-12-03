@@ -2,6 +2,8 @@ const Pool = require("./pool.model");
 const Vote = require("../votes/vote.model");
 const createError = require("http-errors");
 const { StatusCodes } = require("http-status-codes");
+const crypto = require("crypto"); // For generating random access codes
+const { result } = require("lodash");
 
 exports.createPool = async (createPoolDto, userId) => {
   try {
@@ -19,6 +21,13 @@ exports.createPool = async (createPoolDto, userId) => {
     // if (!poolTypeData) {
     //     throw createError(StatusCodes.BAD_REQUEST, 'Pool type data is required.');
     // }
+
+    // Generate an access code if the pool is private
+    let accessCode = null;
+    if (isPrivate == true) {
+      accessCode = crypto.randomBytes(4).toString("hex");
+    }
+    console.log(accessCode, "accessCode");
     const newPool = new Pool({
       question,
       isPrivate,
@@ -29,6 +38,7 @@ exports.createPool = async (createPoolDto, userId) => {
       startDate,
       poolTypeData, // This will pass the poolTypeData from the body directly.
       creator: userId, // The userId passed from the controller
+      accessCode, // added new
     });
 
     // console.log(newPool, "newPool");
@@ -114,12 +124,6 @@ exports.getPublicPoolList = async (getPoolsDto, result = {}) => {
     if (tag) {
       query.tags = { $in: [new RegExp(tag, "i")] };
     }
-    // if (tag) {
-    //   query.$or = [
-    //     { tags: { $in: [tag] } },
-    //     { tags: { $in: [new RegExp(tag, "i")] } },
-    //   ];
-    // }
 
     const [pools, count] = await Promise.all([
       Pool.find(query)
@@ -189,4 +193,33 @@ exports.getPoolById = async ({ id }, result = {}) => {
   } finally {
     return result;
   }
+};
+
+exports.accessPool = async (poolId, accessCode, result = {}) => {
+  try {
+    // Find the pool by ID
+    const pool = await Pool.findById({ _id: poolId });
+    if (!pool) {
+      throw new Error("Pool not found");
+    }
+
+    // If the pool is private, check if the access code matches
+    if (pool.isPrivate == false && pool.accessCode !== accessCode) {
+      throw new Error("Invalid access code");
+    }
+
+    // return {
+    //   // statusCode: StatusCodes.OK,
+    //   // message: "Access granted",
+    //   data: pool,
+    // };
+    result.data = pool;
+  } catch (ex) {
+    result.ex = ex;
+  } finally {
+    return result;
+  }
+  // } catch (error) {
+  //   throw new Error(error.message);
+  // }
 };

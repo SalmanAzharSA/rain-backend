@@ -1,5 +1,5 @@
 const Joi = require("joi");
-Joi.objectId = require("joi-objectid")(Joi); // Adding ObjectId validation if needed
+Joi.objectId = require("joi-objectid")(Joi);
 const { StatusCodes } = require("http-status-codes");
 const createError = require("http-errors");
 
@@ -41,6 +41,8 @@ const allowedTagsValidator = (value, helpers) => {
 module.exports = {
   createPool: {
     body: Joi.object({
+      poolTrxHash: Joi.string().required(),
+      contractAddress: Joi.string().required(),
       question: Joi.string().required(),
       questionImage: Joi.string().required(),
       isPrivate: Joi.boolean().required(),
@@ -63,7 +65,7 @@ module.exports = {
           )
         ),
       liquidityMax: Joi.number().required(),
-      poolTypeData: Joi.object().required(),
+      poolTypeData: Joi.object().optional(),
       //     tags: Joi.alternatives().try(
       //       Joi.string()
       //         .Joi.string()
@@ -115,6 +117,13 @@ module.exports = {
         "any.required": "Pool ID is required",
         "string.pattern.base": "Invalid Pool ID format",
       }),
+    }),
+  },
+
+  accessCodeValidation: {
+    body: Joi.object({
+      poolId: Joi.string().hex().required(),
+      accessCode: Joi.string().length(8).required(), // Access code length
     }),
   },
 };

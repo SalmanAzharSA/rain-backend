@@ -60,23 +60,77 @@ exports.updateComment = async (
   }
 };
 
+// exports.commentListing = async (commentsListingDto, result = {}) => {
+//   try {
+//     const { poolId, limit, offset } = commentsListingDto;
+
+//     console.log(commentsListingDto, "commentsListingDto");
+//     const commentsListing = await Comment.find({ poolId: poolId })
+//       .limit(limit)
+//       .skip(offset * limit)
+//       .lean();
+//     if (!commentsListing || commentsListing.length === 0) {
+//       result.ex = "No comments";
+//       return result;
+//     }
+
+//     const commentsCount = await Comment.countDocuments({ poolId: poolId });
+//     console.log(commentsCount, "commentsCount");
+//     result.data = { comments: commentsListing, count: commentsCount };
+//     result.pagination = {
+//       limit: limit,
+//       offset: offset,
+//       total: commentsCount,
+//     };
+//   } catch (ex) {
+//     result.ex = ex;
+//   } finally {
+//     return result;
+//   }
+// };
+
 exports.commentListing = async (commentsListingDto, result = {}) => {
   try {
     const { poolId, limit, offset } = commentsListingDto;
 
     console.log(commentsListingDto, "commentsListingDto");
+
+    // Fetch all comments for the given pool
     const commentsListing = await Comment.find({ poolId: poolId })
       .limit(limit)
       .skip(offset * limit)
       .lean();
+
     if (!commentsListing || commentsListing.length === 0) {
       result.ex = "No comments";
       return result;
     }
 
+    // Get the total number of comments
     const commentsCount = await Comment.countDocuments({ poolId: poolId });
     console.log(commentsCount, "commentsCount");
-    result.data = { comments: commentsListing, count: commentsCount };
+
+    // Group comments by parentCommentId
+    const groupedComments = commentsListing.reduce((acc, comment) => {
+      // If it's a parent comment, initialize it with a replies array
+      if (!comment.parentCommentId) {
+        acc[comment._id] = { ...comment, replies: [] };
+      } else {
+        // If it's a reply, attach it to its parent comment's replies array
+        if (acc[comment.parentCommentId]) {
+          acc[comment.parentCommentId].replies.push(comment);
+        }
+      }
+      return acc;
+    }, {});
+
+    // Convert the grouped comments back to an array and sort by createdAt
+    const resultComments = Object.values(groupedComments).sort((a, b) => {
+      return new Date(b.createdAt) - new Date(a.createdAt);
+    });
+
+    // Return the result with nested replies
+    result.data = { comments: resultComments, count: commentsCount };
     result.pagination = {
       limit: limit,
       offset: offset,
@@ -86,6 +140,53 @@ exports.commentListing = async (commentsListingDto, result = {}) => {
     result.ex = ex;
   } finally {
     return result;
+  }
+};
+
+exports.likeComment = async (commentId, userId) => {
+  try {
+    const comment = await Comment.findById(commentId);
+
+    if (!comment) {
+      return { error: "Comment not found" };
+    }
+
+    if (comment.likes.includes(userId)) {
+      return { error: "You have already liked this comment" };
+    }
+
+    comment.likes.push(userId);
+
+    await comment.save();
+
+    return { success: true, message: "Comment liked successfully" };
+  } catch (error) {
+    console.error(error);
+    return { error: error.message };
+  }
+};
+
+exports.unlikeComment = async (commentId, userId) => {
+  try {
+    const comment = await Comment.findById(commentId);
+
+    if (!comment) {
+      return { error: "Comment not found" };
+    }
+
+    const index = comment.likes.indexOf(userId);
+    if (index === -1) {
+      return { error: "You have not liked this comment" };
+    }
+
+    comment.likes.splice(index, 1);
+
+    await comment.save();
+
+    return { success: true, message: "Comment unliked successfully" };
+  } catch (error) {
+    console.error(error);
+    return { error: error.message };
   }
 };
 

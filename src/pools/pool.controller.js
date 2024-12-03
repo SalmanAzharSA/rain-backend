@@ -140,3 +140,27 @@ exports.getPoolById = async (req, res, next) => {
     next(ex);
   }
 };
+
+exports.accessPool = async (req, res, next) => {
+  try {
+    const { poolId, accessCode } = req.body;
+
+    const pool = await poolService.accessPool(poolId, accessCode);
+
+    // // If the pool is private, check if the access code matches
+    // if (pool.isPrivate == false && pool.accessCode !== accessCode) {
+    //   return res.status(StatusCodes.FORBIDDEN).json({
+    //     statusCode: StatusCodes.FORBIDDEN,
+    //     message: "Invalid access code for private pool",
+    //   });
+    // }
+
+    return res.status(StatusCodes.OK).json({
+      statusCode: StatusCodes.OK,
+      message: "Access granted",
+      data: pool,
+    });
+  } catch (ex) {
+    next(ex); // Pass error to the error handler middleware
+  }
+};

@@ -3,7 +3,11 @@ const User = require("./users.model");
 
 exports.findUser = async (findUserDto, result = {}) => {
   try {
-    result.data = await User.findOne(findUserDto);
+    result.data = await User.findOne({
+      walletAddress: findUserDto.walletAddress.toLowerCase(),
+    });
+    // console.log(user, "USERRRR");
+    // result.data = user;
   } catch (ex) {
     result.ex = ex;
   } finally {

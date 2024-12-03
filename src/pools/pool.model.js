@@ -26,6 +26,8 @@ const publicPoolSchema = new mongoose.Schema({
 const poolSchema = new mongoose.Schema(
   {
     questionImage: { type: String, required: true },
+    poolTrxHash: { type: String, require: true },
+    contractAddress: { type: String, require: true },
     question: { type: String, required: true },
     options: [
       {
@@ -45,7 +47,7 @@ const poolSchema = new mongoose.Schema(
     isPrivate: { type: Boolean, default: false },
     liquidityMax: { type: Number, required: true },
     startDate: { type: Date, required: true },
-
+    accessCode: { type: String },
     poolTypeData: [publicPoolSchema],
   },
   { timestamps: true }

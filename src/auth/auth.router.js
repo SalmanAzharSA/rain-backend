@@ -10,10 +10,6 @@ const {
 const PASSPORT_STRATEGIES = require("../common/auth/constants/passport.strategies.constant");
 router.post(
   "/signin",
-  (req, res, next) => {
-    console.log("in sigin ROUTE AUTH");
-    next();
-  },
   [
     validate(authValidation.signin, { keyByField: true }),
     authWithPassport(PASSPORT_STRATEGIES.local, { session: false }),

@@ -13,30 +13,190 @@ tags:
     description: Authentication Endpoints
   - name: Users
     description: User Endpoints
-
-components:
-  securitySchemes:
-    bearerAuth:
-      type: http
-      scheme: bearer
-      bearerFormat: JWT
-
-  responses:
-    UnauthorizedError:
-      description: Access token is missing or invalid
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: Unauthorized
-
+  - name: Comments
+    description: Comments Endpoints
+  - name: Pools
+    description: Pools Endpoints
 security:
   - bearerAuth: []
 
 paths:
+  /auth/register-with-walletAddress:
+    post:
+      tags:
+        - Auth
+      summary: Register user with wallet address
+      description: Registers a new user by verifying their wallet address using a signed message.
+      operationId: registerWithWalletAddress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                sign:
+                  type: string
+                  description: The signed message to verify the user's wallet address
+                  example: "0x..."
+                name:
+                  type: string
+                  description: The name of the user
+                  example: "John Doe"
+                bio:
+                  type: string
+                  description: The bio of the user (optional)
+                  example: "Web3 enthusiast"
+                object:
+                  type: object
+                  description: The object containing the message to be signed
+                  properties:
+                    address:
+                      type: string
+                      description: The wallet address of the user
+                      example: "0x1234567890abcdef1234567890abcdef12345678"
+                    message:
+                      type: string
+                      description: The message to be signed by the user
+                      example: "Sign this message to verify ownership of the wallet."
+      responses:
+        200:
+          description: User registered successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: boolean
+                    example: true
+                  msg:
+                    type: string
+                    example: "User Registered"
+                  token:
+                    type: string
+                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYjZkNzI4NmNhZTYzZTJiODMzNjEwZGVkYTA1ZTUzYTciLCJpYXQiOiJhbG9n..."
+                  user:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        example: "60b6c72b7c71bf76c5d4be65"
+                      name:
+                        type: string
+                        example: "John Doe"
+                      walletAddress:
+                        type: string
+                        example: "0x1234567890abcdef1234567890abcdef12345678"
+        400:
+          description: Bad request, missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "All inputs are required"
+        401:
+          description: Unauthorized, signature verification failed or wallet address not correct
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Sign not verified"
+        409:
+          description: Conflict, user already exists
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "User already exists"
+        500:
+          description: Internal Server Error, something went wrong on the server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Error during registration: <error message>"
+  /auth/login-with-walletAddress:
+    post:
+      tags:
+        - Auth
+      summary: User login using wallet address and signed message
+      description: Log in a user by verifying the signature of their wallet address.
+      operationId: loginWithWalletAddress
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                walletAddress:
+                  type: string
+                  description: The wallet address of the user.
+                  example: "0xF2Adc1FAC6629B567cF60154C3FEA4e498E58C91"
+                sign:
+                  type: string
+                  description: The signed message to verify the user's wallet address.You can generate this signed message using a tool like [codesandbox.io](https://codesandbox.io/p/sandbox/react-eth-metamask-signatures-ibuxj?file=%2Fsrc%2FApp.js).
+                  example: "0x..."
+                object:
+                  type: object
+                  description: The object containing the message to be signed and wallet address.
+                  properties:
+                    address:
+                      type: string
+                      description: The wallet address of the user
+                      example: "0x1234567890abcdef1234567890abcdef12345678"
+                    message:
+                      type: string
+                      description: The message to be signed by the user
+                      example: "Sign this message to verify ownership of the wallet."
+      responses:
+        200:
+          $ref: "#/components/responses/LoginSuccess"
+        400:
+          description: Bad request, missing required fields
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Sign and wallet address are required"
+        404:
+          $ref: "#/components/responses/UserNotFoundError"
+        401:
+          description: Unauthorized, signature verification failed
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Sign not verified"
+        500:
+          description: Internal server error, something went wrong on the server
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  msg:
+                    type: string
+                    example: "Error during login: <error message>"
   /auth/login:
     post:
       tags:
@@ -93,3 +253,614 @@ paths:
                     example: john@example.com
         401:
           $ref: "#/components/responses/UnauthorizedError"
+  /users/find-user-by-wallet-address:
+    get:
+      tags:
+        - Users
+      summary: Retrieve user by wallet address
+      description: Retrieve user details using their wallet address.
+      operationId: findUserBywalletAddress
+      parameters:
+        - name: walletAddress
+          in: query
+          required: true
+          description: The wallet address of the user to retrieve.
+          schema:
+            type: string
+            example: "0xF2Adc1FAC6629B567cF60154C3FEA4e498E58C91"
+      responses:
+        200:
+          $ref: "#/components/responses/UserRetrievedSuccess"
+        404:
+          $ref: "#/components/responses/UserNotFound"
+        500:
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 500
+                  message:
+                    type: string
+                    example: "Error retrieving user: <error message>"
+    tags:
+      - Users
+    summary: Retrieve user by wallet address
+    description: Retrieve user details using their wallet address.
+    operationId: findUserBywalletAddress
+    parameters:
+      - name: walletAddress
+        in: query
+        required: true
+        description: The wallet address of the user to retrieve.
+        schema:
+          type: string
+          example: "0xF2Adc1FAC6629B567cF60154C3FEA4e498E58C91"
+    responses:
+      200:
+        $ref: "#/components/responses/UserRetrievedSuccess"
+      404:
+        $ref: "#/components/responses/UserNotFound"
+      500:
+        description: Internal server error
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: integer
+                  example: 500
+                message:
+                  type: string
+                  example: "Error retrieving user: <error message>"
+
+  /comments/comments-listing:
+    get:
+      tags:
+        - Comments
+      summary: Retrieve comments for a pool
+      description: Get all comments for a specific pool with pagination
+      parameters:
+        - name: poolId
+          in: query
+          required: true
+          description: ID of the pool
+          schema:
+            type: string
+            example: "60b6c72b7c71bf76c5d4be65"
+        - name: limit
+          in: query
+          required: false
+          description: Number of comments to fetch per page
+          schema:
+            type: integer
+            default: 10
+        - name: offset
+          in: query
+          required: false
+          description: Page number
+          schema:
+            type: integer
+            default: 0
+      responses:
+        200:
+          description: A list of comments
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  comments:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        commentId:
+                          type: string
+                          example: "60b6c72b7c71bf76c5d4be65"
+                        comment:
+                          type: string
+                          example: "This is a comment."
+        400:
+          description: Bad request
+        404:
+          description: Comments not found
+
+  /pools/create-pool:
+    post:
+      summary: "Create a new pool"
+      description: "Create a new pool with the specified question, options, and other data. If the pool is private, an access code will be generated automatically."
+      operationId: "createPool"
+      tags:
+        - "Pools"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                question:
+                  type: string
+                  description: "The question for the pool (e.g., 'Will the price of ETH rise in the next week?')"
+                  example: "Will the price of ETH rise in the next week?"
+                questionImage:
+                  type: string
+                  description: "URL of an image related to the question"
+                  example: "https://example.com/question-image.jpg"
+                options:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      optionName:
+                        type: string
+                        description: "The name of the option"
+                        example: "Yes"
+                      optionImage:
+                        type: string
+                        description: "URL of the image representing the option"
+                        example: "https://example.com/yes-option.jpg"
+                  description: "The possible options for the pool (e.g., ['Yes', 'No'])"
+                  example:
+                    - optionName: "Yes"
+                      optionImage: "https://example.com/yes-option.jpg"
+                    - optionName: "No"
+                      optionImage: "https://example.com/no-option.jpg"
+                tags:
+                  type: array
+                  items:
+                    type: string
+                  description: "Tags related to the pool"
+                  example: ["CRYPTO", "MOVIES", "SPORTS"]
+                creator:
+                  type: string
+                  format: objectid
+                  description: "User ID of the creator"
+                  example: "60d5f3a5b0a7ac001c2d51a3"
+                isPrivate:
+                  type: boolean
+                  description: "Flag indicating whether the pool is private or public"
+                  example: true
+                liquidityMax:
+                  type: number
+                  description: "Maximum liquidity for the pool"
+                  example: 10000
+                startDate:
+                  type: string
+                  format: date-time
+                  description: "The start date and time for the pool"
+                  example: "2024-12-10T12:00:00Z"
+                poolTypeData:
+                  type: array
+                  description: "Data specific to public pools"
+                  items:
+                    type: object
+                    properties:
+                      minimumOracles:
+                        type: number
+                        description: "Minimum number of oracles required for the pool"
+                        example: 3
+                      maximumOracles:
+                        type: number
+                        description: "Maximum number of oracles allowed for the pool"
+                        example: 5
+                      rewardType:
+                        type: string
+                        enum: ["fixedAmount", "baseAmountPlusBonus"]
+                        description: "Type of reward for the pool"
+                        example: "fixedAmount"
+                      rewardDetails:
+                        type: object
+                        properties:
+                          fixedAmount:
+                            type: object
+                            properties:
+                              rewardAmountPerOracle:
+                                type: number
+                                description: "The reward amount per oracle"
+                                example: 100
+                          baseAmountPlusBonus:
+                            type: object
+                            properties:
+                              baseAmountPerOracle:
+                                type: number
+                                description: "Base reward amount per oracle"
+                                example: 50
+                              associatedDealSize:
+                                type: number
+                                description: "Associated deal size for the pool"
+                                example: 1000
+                              bonusPercentage:
+                                type: number
+                                description: "Bonus percentage for the reward"
+                                example: 10
+                      timeZone:
+                        type: string
+                        description: "Time zone for the pool"
+                        example: "UTC"
+                      duration:
+                        type: number
+                        description: "Duration of the pool in days"
+                        example: 7
+              required:
+                - question
+                - questionImage
+                - options
+                - creator
+                - isPrivate
+                - liquidityMax
+                - startDate
+                - poolTypeData
+      responses:
+        201:
+          description: "Pool created successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 201
+                  message:
+                    type: string
+                    example: "Pool created successfully."
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        description: "Unique identifier of the pool"
+                        example: "60d5f3a5b0a7ac001c2d51a3"
+                      question:
+                        type: string
+                        example: "Will the price of ETH rise in the next week?"
+                      questionImage:
+                        type: string
+                        example: "https://example.com/question-image.jpg"
+                      options:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            optionName:
+                              type: string
+                              example: "Yes"
+                            optionImage:
+                              type: string
+                              example: "https://example.com/yes-option.jpg"
+                      tags:
+                        type: array
+                        items:
+                          type: string
+                        example: ["cryptocurrency", "ETH", "prediction"]
+                      creator:
+                        type: string
+                        example: "60d5f3a5b0a7ac001c2d51a3"
+                      isPrivate:
+                        type: boolean
+                        example: true
+                      liquidityMax:
+                        type: number
+                        example: 10000
+                      startDate:
+                        type: string
+                        format: date-time
+                        example: "2024-12-10T12:00:00Z"
+                      poolTypeData:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            minimumOracles:
+                              type: number
+                              example: 3
+                            maximumOracles:
+                              type: number
+                              example: 5
+                            rewardType:
+                              type: string
+                              example: "fixedAmount"
+                            rewardDetails:
+                              type: object
+                              properties:
+                                fixedAmount:
+                                  type: object
+                                  properties:
+                                    rewardAmountPerOracle:
+                                      type: number
+                                      example: 100
+                                baseAmountPlusBonus:
+                                  type: object
+                                  properties:
+                                    baseAmountPerOracle:
+                                      type: number
+                                      example: 50
+                                    associatedDealSize:
+                                      type: number
+                                      example: 1000
+                                    bonusPercentage:
+                                      type: number
+                                      example: 10
+                            timeZone:
+                              type: string
+                              example: "UTC"
+                            duration:
+                              type: number
+                              example: 7
+                      poolTrxHash:
+                        type: string
+                        description: "Transaction hash for the pool creation on the blockchain"
+                        example: "0x8c7749a314bc8ee0dbfa3f5397f3475f63186efeb64e7f1cdbb63e1d9cdaf89f"
+                      contractAddress:
+                        type: string
+                        description: "Smart contract address where the pool is deployed"
+                        example: "0x2dB2b55feB45d8e4F4ecD0F51769497e4F7f45F7"
+        400:
+          description: "Bad request, missing required fields or invalid data"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: "Bad request, some required fields are missing or invalid."
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 500
+                  message:
+                    type: string
+                    example: "Error creating pool: internal server error."
+
+  /pools/accessPool:
+    post:
+      summary: "Access a private pool using the access code"
+      description: "Access a private pool by providing the pool ID and the correct access code."
+      operationId: "accessPool"
+      tags:
+        - "Pools"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                poolId:
+                  type: string
+                  description: "The ID of the pool you want to access"
+                  example: "60c72b2f9b1d8a001c8cbb7d"
+                accessCode:
+                  type: string
+                  description: "The access code for a private pool"
+                  example: "a1b2c3d4"
+              required:
+                - poolId
+                - accessCode
+      responses:
+        200:
+          description: "Access granted to the pool"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Access granted"
+                  data:
+                    type: object
+                    properties:
+                      poolId:
+                        type: string
+                        example: "60c72b2f9b1d8a001c8cbb7d"
+                      question:
+                        type: string
+                        example: "What will be the weather like next week?"
+                      isPrivate:
+                        type: boolean
+                        example: true
+        403:
+          description: "Forbidden. Invalid access code"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 403
+                  message:
+                    type: string
+                    example: "Invalid access code for private pool"
+        404:
+          description: "Pool not found"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Pool not found"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  responses:
+    UserSignupSuccess:
+      description: User registered successfully
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+                description: Status code denoting API response
+                example: 201
+              message:
+                type: string
+                description: Descriptive message describing response
+                example: "User Registered"
+              token:
+                type: string
+                example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              user:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    example: "60b6c72b7c71bf76c5d4be65"
+                  name:
+                    type: string
+                    example: "John Doe"
+                  walletAddress:
+                    type: string
+                    example: "0x1234567890abcdef1234567890abcdef12345678"
+
+    UnauthorizedError:
+      description: Unauthorized access
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              msg:
+                type: string
+                example: "Unauthorized"
+
+    BadRequestError:
+      description: Bad request, missing required fields
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              msg:
+                type: string
+                example: "All inputs are required"
+
+    ConflictError:
+      description: Conflict, user already exists
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              msg:
+                type: string
+                example: "User already exists"
+    InternalServerError:
+      description: Internal Server Error, something went wrong on the server
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              msg:
+                type: string
+                example: "Error during registration: <error message>"
+    LoginSuccess:
+      description: Successful user login with wallet address
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              status:
+                type: boolean
+                example: true
+              msg:
+                type: string
+                example: "User Logged In"
+              token:
+                type: string
+                example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+              user:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    example: "60b6c72b7c71bf76c5d4be65"
+                  name:
+                    type: string
+                    example: "John Doe"
+                  walletAddress:
+                    type: string
+                    example: "0x1234567890abcdef1234567890abcdef12345678"
+    UserNotFoundError:
+      summary: User not found
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 404
+        message:
+          type: string
+          example: User not found
+        details:
+          example: null
+    UserNotFound:
+      description: User not found with the provided wallet address
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+                example: 404
+              message:
+                type: string
+                example: "User doesn't exist"
+    UserRetrievedSuccess:
+      description: Successfully retrieved the user based on wallet address
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              statusCode:
+                type: integer
+                example: 200
+              message:
+                type: string
+                example: "User retrieved successfully"
+              data:
+                type: object
+                properties:
+                  _id:
+                    type: string
+                    example: "60b6c72b7c71bf76c5d4be65"
+                  name:
+                    type: string
+                    example: "John Doe"
+                  walletAddress:
+                    type: string
+                    example: "0xF2Adc1FAC6629B567cF60154C3FEA4e498E58C91"

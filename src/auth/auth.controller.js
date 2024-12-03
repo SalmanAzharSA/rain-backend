@@ -50,6 +50,7 @@ exports.registerWithWalletAddress = async (req, res, next) => {
   try {
     const { sign, name, bio, object } = req.body;
 
+    // console.log(req.body, "REQ?BODYYY");
     if (typeof object === "string") {
       object = JSON.parse(object);
     }
@@ -76,7 +77,7 @@ exports.registerWithWalletAddress = async (req, res, next) => {
       bio,
       object,
     };
-
+    // console.log(registerData, "registerData");
     const result = await authService.registerwithWalletAddress(
       registerData,
       sign
@@ -87,6 +88,7 @@ exports.registerWithWalletAddress = async (req, res, next) => {
         .status(result.error.status)
         .json({ msg: result.error.message });
     }
+
     return res.status(200).json({
       status: true,
       msg: "User Registered",
@@ -94,6 +96,7 @@ exports.registerWithWalletAddress = async (req, res, next) => {
       user: result.data.user,
     });
   } catch (error) {
+    console.log(error, "RTOO");
     next(error);
   }
 };

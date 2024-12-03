@@ -18,7 +18,15 @@ const commentsRouter = require("./comments/comment.router");
 // };
 
 exports.initRoutes = (app) => {
-  app.use("/auth", authRouter);
+  app.use(
+    "/auth",
+    (req, res, next) => {
+      console.log("IN main");
+      next();
+    },
+
+    authRouter
+  );
   /*----------------------------------*/
   app.use("/users", usersRouter);
   app.use("/investments", investmentsRouter);

@@ -90,11 +90,13 @@ exports.createTokens = createTokens;
 exports.registerwithWalletAddress = async (userData, sign, result = {}) => {
   try {
     const { walletAddress, name, bio, sign, object } = userData;
-
+    console.log("userDAT==>", userData);
     let user = await usersService.findUser({
       walletAddress: walletAddress.toLowerCase(),
     });
-    if (user) {
+    console.log("USER--", user.data);
+
+    if (user.data) {
       // var token = jwt.sign(
       //   {
       //     _id: user._id.toString(),
@@ -111,10 +113,16 @@ exports.registerwithWalletAddress = async (userData, sign, result = {}) => {
 
     if (walletAddress) {
       const signerAddr = await ethers.utils.verifyMessage(object.message, sign);
+      console.log(signerAddr, "signerAddr");
       if (signerAddr !== walletAddress) {
         console.log("message not verified:", object.message, sign);
-
-        return false;
+        result.error = {
+          status: 401,
+          message:
+            "Signature verification failed: signer address does not match wallet address",
+        };
+        // return false;
+        return result;
       }
       console.log("message verified:", object.message, signerAddr);
 
@@ -168,7 +176,7 @@ exports.loginWithWalletAddress = async (loginData, sign, result = {}) => {
       walletAddress: walletAddress.toLowerCase(),
     });
 
-    if (!user) {
+    if (!user.data) {
       result.error = { status: 401, message: "User Not Found" };
       return result;
     }
@@ -185,7 +193,7 @@ exports.loginWithWalletAddress = async (loginData, sign, result = {}) => {
     // Generate JWT token
     const token = jwt.sign(
       {
-        _id: user._id.toString(),
+        _id: user.data._id.toString(),
         walletAddress: walletAddress,
         displayName: user.name,
       },

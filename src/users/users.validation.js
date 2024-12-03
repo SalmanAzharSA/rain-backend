@@ -10,9 +10,9 @@ module.exports = {
   },
 
   getUser: {
-    // query: Joi.object({
-    //   walletAddress: Joi.string().required(),
-    // }),
+    query: Joi.object({
+      walletAddress: Joi.string().required(),
+    }),
 
     query: Joi.object({
       walletAddress: Joi.string()
