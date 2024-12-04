@@ -33,6 +33,7 @@ const poolSchema = new mongoose.Schema(
       {
         optionName: { type: String, required: true },
         optionImage: { type: String },
+        choiceIndex: { type: Number },
       },
     ],
     tags: {

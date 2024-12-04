@@ -21,6 +21,7 @@ security:
   - bearerAuth: []
 
 paths:
+
   /auth/register-with-walletAddress:
     post:
       tags:
@@ -317,6 +318,86 @@ paths:
                 message:
                   type: string
                   example: "Error retrieving user: <error message>"
+
+  /create-comment:
+    post:
+      summary: "Create a new comment"
+      description: "Create a new comment for a pool or post. The comment will be associated with a pool and can be used to express user feedback or interaction."
+      operationId: "createComment"
+      tags:
+        - "Comments"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                content:
+                  type: string
+                  description: "The content of the comment (e.g., 'This pool is awesome!')"
+                  example: "This pool is awesome!"
+                poolId:
+                  type: string
+                  format: objectid
+                  description: "The ID of the pool the comment is associated with."
+                  example: "60d5f3a5b0a7ac001c2d51a3"
+      responses:
+        200:
+          description: "Comment created successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Comment created successfully"
+                  data:
+                    type: object
+                    properties:
+                      commentId:
+                        type: string
+                        description: "The unique identifier for the newly created comment."
+                        example: "67485b984a2f4e38b8c976b7"
+                      content:
+                        type: string
+                        description: "The content of the comment."
+                        example: "This pool is awesome!"
+                      poolId:
+                        type: string
+                        format: objectid
+                        description: "The pool ID that the comment is linked to."
+                        example: "60d5f3a5b0a7ac001c2d51a3"
+      400:
+        description: "Bad request, missing required fields or invalid data"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: integer
+                  example: 400
+                message:
+                  type: string
+                  example: "Bad request, some required fields are missing or invalid."
+      500:
+        description: "Internal Server Error"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                statusCode:
+                  type: integer
+                  example: 500
+                message:
+                  type: string
+                  example: "Error creating comment: internal server error."
 
   /comments/comments-listing:
     get:
@@ -627,7 +708,6 @@ paths:
                   message:
                     type: string
                     example: "Error creating pool: internal server error."
-
   /pools/accessPool:
     post:
       summary: "Access a private pool using the access code"
@@ -705,6 +785,249 @@ paths:
                   message:
                     type: string
                     example: "Pool not found"
+  /pools/pool-listing-by-creator:
+    get:
+      summary: Retrieve a list of pools created by a user
+      description: Fetch a list of pools created by the authenticated user, filtered by privacy type (private/public).
+      operationId: getPoolsByCreator
+      tags:
+        - Pools
+      parameters:
+        - in: query
+          name: limit
+          description: Number of pools to retrieve per page (default: 10)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 10
+        - in: query
+          name: offset
+          description: Page offset for pagination (default: 1)
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+        - in: query
+          name: filter
+          description: Filter pools by privacy type. Options: `privatePools`, `publicPools`. 
+            Defaults to public pools if not provided.
+          required: false
+          schema:
+            type: string
+            enum: 
+              - privatePools
+              - publicPools
+      responses:
+        200:
+          description: Successfully retrieved the pools list
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: Pools list retrieved successfully
+                  data:
+                    type: object
+                    properties:
+                      pools:
+                        type: array
+                        items:
+                          $ref: '#/components/schemas/Pool'
+                      count:
+                        type: integer
+                        example: 5
+                      pages:
+                        type: integer
+                        example: 1
+        400:
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: "limit must be greater than or equal to 1"
+        401:
+          description: Unauthorized access, invalid token
+        404:
+          description: Pools not found
+        500:
+          description: Internal server error
+  /pools/sign-participation:
+    post:
+      summary: Signs a participation transaction for a pool.
+      description: This endpoint allows a user to sign a participation transaction in a pool. The transaction includes details like the wallet address, the option selected, the amount to invest, and the timestamp.
+      tags:
+        - Pools
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                walletAddress:
+                  type: string
+                  description: The Ethereum address of the user who is participating.
+                  example: "0x5b1b2268f3a563c3a65b1f2a34032c73e607ec6c"
+                option:
+                  type: integer
+                  description: The option the user is selecting (usually an index or ID of the option).
+                  example: 1
+                amount:
+                  type: number
+                  description: The amount the user is investing (in USDT or token).
+                  example: 100
+                timestamp:
+                  type: integer
+                  description: The timestamp when the transaction is being signed, in epoch format (seconds).
+                  example: 1637782800
+      responses:
+        '200':
+          description: Successfully signed participation transaction
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Transaction signed successfully"
+                  data:
+                    type: object
+                    properties:
+                      signature:
+                        type: string
+                        description: The signed message from the private key.
+                        example: "0x4e9b98f34d97c0e2b1e76c89a6c1995e50e207e8d7fdb53ed8ff035b0fe9512d56e92f7b6b287585fcdc8466da923ad0e1f071d3b22005145c13f2f313b06f41"
+        '400':
+          description: Bad request, invalid input
+        '500':
+          description: Internal server error
+  /pools/sign-swap:
+    post:
+      summary: Signs a swap transaction for the pool.
+      description: This endpoint allows a user to sign a swap transaction where they swap their votes from one option to another.
+      tags:
+        - Pools
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                walletAddress:
+                  type: string
+                  description: The Ethereum address of the user.
+                  example: "0x5b1b2268f3a563c3a65b1f2a34032c73e607ec6c"
+                optionFrom:
+                  type: string
+                  description: The option the user is swapping from.
+                  example: "Option A"
+                optionTo:
+                  type: string
+                  description: The option the user is swapping to.
+                  example: "Option B"
+                amountToSwap:
+                  type: number
+                  description: The amount the user wants to swap.
+                  example: 50
+                timestamp:
+                  type: integer
+                  description: The timestamp of the transaction in epoch (seconds).
+                  example: 1637782800
+      responses:
+        '200':
+          description: Successfully signed swap transaction
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Transaction signed successfully"
+                  data:
+                    type: object
+                    properties:
+                      signature:
+                        type: string
+                        description: The signed message from the private key.
+                        example: "0x4e9b98f34d97c0e2b1e76c89a6c1995e50e207e8d7fdb53ed8ff035b0fe9512d56e92f7b6b287585fcdc8466da923ad0e1f071d3b22005145c13f2f313b06f41"
+        '400':
+          description: Bad request, invalid input
+        '500':
+          description: Internal server error
+  /pools/sign-add-liquidity:
+    post:
+      summary: Signs an add liquidity transaction for the pool.
+      description: This endpoint allows a user to sign a transaction to add liquidity to a pool.
+      tags:
+        - Pools
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                walletAddress:
+                  type: string
+                  description: The Ethereum address of the user.
+                  example: "0x5b1b2268f3a563c3a65b1f2a34032c73e607ec6c"
+                totalAmount:
+                  type: number
+                  description: The total amount the user wants to add to the pool (in USDT).
+                  example: 1000
+                timestamp:
+                  type: integer
+                  description: The timestamp of the transaction in epoch (seconds).
+                  example: 1637782800
+      responses:
+        '200':
+          description: Successfully signed add liquidity transaction
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                   type: string
+                    example: "Add liquidity transaction signed successfully"
+                  data:
+                    type: object
+                    properties:
+                      signature:
+                        type: string
+                        description: The signed message from the private key.
+                        example: "0x4e9b98f34d97c0e2b1e76c89a6c1995e50e207e8d7fdb53ed8ff035b0fe9512d56e92f7b6b287585fcdc8466da923ad0e1f071d3b22005145c13f2f313b06f41"
+        '400':
+          description: Bad request, invalid input
+      '500':
+        description: Internal server error
+
 
 components:
   securitySchemes:

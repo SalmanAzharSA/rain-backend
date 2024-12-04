@@ -1,4 +1,3 @@
-
 module.exports = {
   baseUrl: process.env.BASE_URL,
   database: {
@@ -33,6 +32,10 @@ module.exports = {
   },
   redis: {
     host: process.env.REDIS_HOST,
+  },
+  signTransactions: {
+    privateKey: process.env.PRIVATE_KEY,
+    // publicKry: process.env.PUBLIC_KEY,
   },
   maxEventListeners: 10,
 

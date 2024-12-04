@@ -54,7 +54,7 @@ module.exports = {
           })
         )
         .min(2)
-        .max(10)
+        // .max(10)
         .required(),
       startDate: Joi.date()
         .iso()
@@ -124,6 +124,59 @@ module.exports = {
     body: Joi.object({
       poolId: Joi.string().hex().required(),
       accessCode: Joi.string().length(8).required(), // Access code length
+    }),
+  },
+
+  poolListingByCreator: {
+    query: Joi.object({
+      limit: Joi.number().integer().optional(),
+      offset: Joi.number().integer().optional(),
+      filter: Joi.string().valid("privatePools", "publicPools").optional(),
+    }),
+  },
+
+  signParticipationTransaction: {
+    body: Joi.object({
+      walletAddress: Joi.string()
+        .pattern(/^0x[a-fA-F0-9]{40}$/)
+        .required(),
+      // option: Joi.string().valid("1", "2", "3", "4").required(),
+      option: Joi.number().required(),
+
+      amount: Joi.number().positive().required(), // Amount in USDT
+      timestamp: Joi.number().integer().positive().required(), // Epoch timestamp
+    }),
+  },
+
+  swapTransaction: {
+    body: Joi.object({
+      walletAddress: Joi.string()
+        .pattern(/^0x[a-fA-F0-9]{40}$/)
+        .required(),
+      optionFrom: Joi.string().required(),
+      optionTo: Joi.string().required(),
+      amountToSwap: Joi.number().positive().required(),
+      timestamp: Joi.number().integer().positive().required(),
+    }),
+  },
+
+  signAddLiquidity: {
+    body: Joi.object({
+      walletAddress: Joi.string()
+        .pattern(/^0x[a-fA-F0-9]{40}$/)
+        .required()
+        .messages({
+          "string.pattern.base":
+            "walletAddress must be a valid Ethereum address.",
+        }),
+      totalAmount: Joi.number().positive().required().messages({
+        "number.base": "totalAmount must be a number.",
+        "number.positive": "totalAmount must be greater than zero.",
+      }),
+      timestamp: Joi.number().integer().positive().required().messages({
+        "number.base": "timestamp must be a valid integer.",
+        "number.positive": "timestamp must be a positive value.",
+      }),
     }),
   },
 };

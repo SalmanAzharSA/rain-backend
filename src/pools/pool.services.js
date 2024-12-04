@@ -2,8 +2,64 @@ const Pool = require("./pool.model");
 const Vote = require("../votes/vote.model");
 const createError = require("http-errors");
 const { StatusCodes } = require("http-status-codes");
-const crypto = require("crypto"); // For generating random access codes
-const { result } = require("lodash");
+const crypto = require("crypto");
+const configs = require("../../configs");
+const { ethers } = require("ethers"); // Use ethers.js to sign the message
+
+console.log(
+  configs.signTransactions,
+  "signTransactionssignTransactionssignTransactions"
+);
+// exports.createPool = async (createPoolDto, userId) => {
+//   try {
+//     const {
+//       question,
+//       isPrivate,
+//       liquidityMax,
+//       questionImage,
+//       options,
+//       tags,
+//       startDate,
+//       poolTypeData,
+//     } = createPoolDto;
+//     // Validate that required fields are present for both types of pools
+//     // if (!poolTypeData) {
+//     //     throw createError(StatusCodes.BAD_REQUEST, 'Pool type data is required.');
+//     // }
+
+//     // Generate an access code if the pool is private
+//     let accessCode = null;
+//     if (isPrivate == true) {
+//       accessCode = crypto.randomBytes(4).toString("hex");
+//     }
+//     console.log(accessCode, "accessCode");
+//     const newPool = new Pool({
+//       question,
+//       isPrivate,
+//       liquidityMax,
+//       questionImage,
+//       options,
+//       tags,
+//       startDate,
+//       poolTypeData, // This will pass the poolTypeData from the body directly.
+//       creator: userId, // The userId passed from the controller
+//       accessCode, // added new
+//     });
+
+//     // console.log(newPool, "newPool");
+
+//     // Save the new pool to the database
+//     await newPool.save();
+
+//     return newPool;
+//   } catch (error) {
+//     console.log(error, "ERRRR");
+//     throw createError(
+//       StatusCodes.INTERNAL_SERVER_ERROR,
+//       `Error creating pool: ${error.message}`
+//     );
+//   }
+// };
 
 exports.createPool = async (createPoolDto, userId) => {
   try {
@@ -17,32 +73,51 @@ exports.createPool = async (createPoolDto, userId) => {
       startDate,
       poolTypeData,
     } = createPoolDto;
-    // Validate that required fields are present for both types of pools
-    // if (!poolTypeData) {
-    //     throw createError(StatusCodes.BAD_REQUEST, 'Pool type data is required.');
-    // }
 
-    // Generate an access code if the pool is private
+    if (!options || options.length === 0) {
+      throw createError(
+        StatusCodes.BAD_REQUEST,
+        "At least one option is required."
+      );
+    }
+
+    const adjustedOptions = options.map((option, index) => {
+      return {
+        ...option,
+        choiceIndex: index + 1,
+      };
+    });
     let accessCode = null;
     if (isPrivate == true) {
-      accessCode = crypto.randomBytes(4).toString("hex");
+      // accessCode = crypto.randomBytes(4).toString("hex");
+      let isUnique = false;
+
+      while (!isUnique) {
+        accessCode = crypto.randomBytes(4).toString("hex");
+
+        const existingPool = await Pool.findOne({ accessCode });
+
+        if (!existingPool) {
+          isUnique = true;
+        }
+      }
     }
+
     console.log(accessCode, "accessCode");
+
+    // Create the new pool object
     const newPool = new Pool({
       question,
       isPrivate,
       liquidityMax,
       questionImage,
-      options,
+      options: adjustedOptions,
       tags,
       startDate,
-      poolTypeData, // This will pass the poolTypeData from the body directly.
-      creator: userId, // The userId passed from the controller
-      accessCode, // added new
+      poolTypeData,
+      creator: userId,
+      accessCode,
     });
-
-    // console.log(newPool, "newPool");
-
     // Save the new pool to the database
     await newPool.save();
 
@@ -82,38 +157,6 @@ exports.declareWinner = async (
     return result;
   }
 };
-
-/*
-//With common logic for private and public pools
-exports.getPoolList = async (getPoolsDto, result = {}) => {
-    try {
-        const { limit, offset, isPrivate } = getPoolsDto;
-
-      
-        const query = isPrivate !== undefined ? { isPrivate } : {};  
-
-        // Fetch pools and total count in parallel
-        const [pools, count] = await Promise.all([
-            Pool.find(query)  // Filter by isPrivate if provided
-                .skip((offset - 1) * limit)  // Skip for pagination
-                .limit(limit)  // Limit results per page
-                .sort({ createdAt: -1 }),  // Sort by creation date (latest first)
-            Pool.countDocuments(query),  // Count total pools matching the query
-        ]);
-
-        // Return the result in a structured format
-        result.data = {
-            pools,
-            count,
-            pages: Math.ceil(count / limit),  // Calculate total pages
-        };
-    } catch (ex) {
-        result.ex = ex;
-    } finally {
-        return result;
-    }
-};
-*/
 
 exports.getPublicPoolList = async (getPoolsDto, result = {}) => {
   try {
@@ -222,4 +265,119 @@ exports.accessPool = async (poolId, accessCode, result = {}) => {
   // } catch (error) {
   //   throw new Error(error.message);
   // }
+};
+
+exports.poolListingByCreator = async (getPoolsDto, creatorId, result = {}) => {
+  try {
+    const { limit, offset, filter } = getPoolsDto;
+    console.log(getPoolsDto, "getPoolsDto");
+    const query = {
+      creator: creatorId,
+    };
+
+    if (filter === "privatePools") {
+      query.isPrivate = true;
+    } else if (filter === "publicPools") {
+      query.isPrivate = false;
+    } else {
+      query.isPrivate = false;
+    }
+
+    const [pools, count] = await Promise.all([
+      Pool.find(query)
+        .skip((offset - 1) * limit)
+        .limit(limit)
+        .sort({ createdAt: -1 }),
+      Pool.countDocuments(query),
+    ]);
+
+    result.data = {
+      pools,
+      count,
+      pages: Math.ceil(count / limit),
+    };
+  } catch (ex) {
+    result.ex = ex;
+  } finally {
+    return result;
+  }
+};
+
+exports.signParticipationTransaction = async (transactionDetails) => {
+  try {
+    const { walletAddress, option, amount, timestamp } = transactionDetails;
+
+    const message = ethers.utils.solidityKeccak256(
+      ["address", "uint256", "uint256", "uint256"],
+      [walletAddress, option, amount, timestamp]
+    );
+
+    const privateKey = configs.signTransactions.privateKey;
+    if (!privateKey) {
+      throw new Error("Private key not found in environment variables.");
+    }
+
+    const wallet = new ethers.Wallet(privateKey);
+
+    const signature = await wallet.signMessage(message);
+
+    return signature;
+  } catch (error) {
+    throw error;
+  }
+};
+
+exports.signSwapTransaction = async (swapTransactionDetails) => {
+  try {
+    const { walletAddress, optionFrom, optionTo, amountToSwap, timestamp } =
+      swapTransactionDetails;
+
+    const message = ethers.utils.solidityKeccak256(
+      ["address", "string", "string", "uint256", "uint256"],
+      [walletAddress, optionFrom, optionTo, amountToSwap, timestamp]
+    );
+
+    const privateKey = configs.signTransactions.privateKey;
+    if (!privateKey) {
+      throw new Error("Private key not found in environment variables.");
+    }
+
+    const wallet = new ethers.Wallet(privateKey);
+
+    // ECDSA signature
+    const signature = await wallet.signMessage(message);
+
+    return signature;
+  } catch (error) {
+    throw error;
+  }
+};
+
+exports.signAddLiquidityTransaction = async (
+  addLiquidityTransactionDetails
+) => {
+  try {
+    const { walletAddress, totalAmount, timestamp } =
+      addLiquidityTransactionDetails;
+
+    const message = ethers.utils.solidityKeccak256(
+      ["address", "uint256", "uint256"],
+      [walletAddress, totalAmount, timestamp]
+    );
+
+    const privateKey = configs.signTransactions.privateKey;
+    if (!privateKey) {
+      throw new Error("Private key not found in environment variables.");
+    }
+
+    const wallet = new ethers.Wallet(privateKey);
+
+    const signature = await wallet.signMessage(message);
+    //this is for a hash not a string
+    // const signature = await wallet.signMessage(ethers.utils.arrayify(message));
+
+    return signature;
+  } catch (error) {
+    throw error;
+  }
 };

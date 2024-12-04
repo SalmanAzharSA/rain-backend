@@ -38,13 +38,39 @@ exports.createPool = async (req, res, next) => {
   }
 };
 
-exports.getPoolList = async (req, res, next) => {
+// exports.getPoolList = async (req, res, next) => {
+//   try {
+//     const poolListDto = {
+//       ...req.query, // expects limit, offset, and possibly filters (like public/private)
+//     };
+
+//     const result = await poolService.getPoolList(poolListDto);
+
+//     if (result.ex) throw result.ex;
+
+//     res.status(StatusCodes.OK).json({
+//       statusCode: StatusCodes.OK,
+//       message: "Pools list retrieved successfully",
+//       data: result.data,
+//     });
+//   } catch (ex) {
+//     next(ex);
+//   }
+// };
+
+exports.poolListingByCreator = async (req, res, next) => {
   try {
+    const creatorId = req.user._id;
     const poolListDto = {
-      ...req.query, // expects limit, offset, and possibly filters (like public/private)
+      limit: parseInt(req.query.limit) || 10,
+      offset: parseInt(req.query.offset) || 1,
+      filter: req.query.filter,
     };
 
-    const result = await poolService.getPoolList(poolListDto);
+    const result = await poolService.poolListingByCreator(
+      poolListDto,
+      creatorId
+    );
 
     if (result.ex) throw result.ex;
 
@@ -162,5 +188,111 @@ exports.accessPool = async (req, res, next) => {
     });
   } catch (ex) {
     next(ex); // Pass error to the error handler middleware
+  }
+};
+
+exports.signParticipationTransaction = async (req, res, next) => {
+  try {
+    const { walletAddress, timestamp, option, amount } = req.body;
+
+    // Validate the input data
+    // if (!walletAddress || !poolId || !option || !amount || !timestamp) {
+    //   return res.status(StatusCodes.BAD_REQUEST).json({
+    //     statusCode: StatusCodes.BAD_REQUEST,
+    //     message:
+    //       "All fields are required: walletAddress, poolId, option, amount, timestamp.",
+    //   });
+    // }
+
+    const transactionDetails = {
+      walletAddress,
+      option,
+      amount,
+      timestamp,
+    };
+
+    const signature = await poolService.signParticipationTransaction(
+      transactionDetails
+    );
+
+    return res.status(StatusCodes.OK).json({
+      statusCode: StatusCodes.OK,
+      message: "Transaction signed successfully",
+      data: {
+        signature,
+      },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.signSwapTransaction = async (req, res, next) => {
+  try {
+    const { walletAddress, optionFrom, optionTo, amountToSwap, timestamp } =
+      req.body;
+
+    const swapTransactionDetails = {
+      walletAddress,
+      optionFrom,
+      optionTo,
+      amountToSwap,
+      timestamp,
+    };
+    // const { error, value } = swapSchema.validate(req.body);
+    // if (error) {
+    //   return res.status(StatusCodes.BAD_REQUEST).json({
+    //     statusCode: StatusCodes.BAD_REQUEST,
+    //     message: error.details[0].message,
+    //   });
+    // }
+
+    const signature = await poolService.signSwapTransaction(
+      swapTransactionDetails
+    );
+
+    res.status(StatusCodes.OK).json({
+      statusCode: StatusCodes.OK,
+      message: "Swap Transaction signed successfully",
+      data: { signature },
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.signAddLiquidityTransaction = async (req, res, next) => {
+  try {
+    const { walletAddress, totalAmount, timestamp } = req.body;
+
+    // Validate input fields
+    if (!walletAddress || !totalAmount || !timestamp) {
+      return res.status(StatusCodes.BAD_REQUEST).json({
+        statusCode: StatusCodes.BAD_REQUEST,
+        message:
+          "All fields (walletAddress, totalAmount, timestamp) are required.",
+      });
+    }
+
+    // Prepare transaction details for signing
+    const addLiquidityTransactionDetails = {
+      walletAddress,
+      totalAmount,
+      timestamp,
+    };
+
+    // Call the service to generate the signature
+    const signature = await poolService.signAddLiquidityTransaction(
+      addLiquidityTransactionDetails
+    );
+
+    // Respond with the generated signature
+    res.status(StatusCodes.OK).json({
+      statusCode: StatusCodes.OK,
+      message: "Add Liquidity Transaction signed successfully",
+      data: { signature },
+    });
+  } catch (error) {
+    next(error); // Pass the error to the global error handler
   }
 };

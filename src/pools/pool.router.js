@@ -11,8 +11,8 @@ const {
 router.post(
   "/create-pool",
   [
-    authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
     validate(poolValidation.createPool, { keyByField: true }),
+    authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
   ],
   poolController.createPool
 );
@@ -53,6 +53,42 @@ router.get(
     authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
   ],
   poolController.accessPool
+);
+
+router.get(
+  "/pool-listing-by-creator",
+  [
+    // validate(poolValidation.accessCodeValidation, { keyByField: true }),
+    authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
+  ],
+  poolController.poolListingByCreator
+);
+
+router.post(
+  "/sign-participation",
+  [
+    validate(poolValidation.signParticipationTransaction, { keyByField: true }),
+    // authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
+  ],
+  poolController.signParticipationTransaction
+);
+
+router.post(
+  "/sign-swap",
+  [
+    validate(poolValidation.swapTransaction, { keyByField: true }),
+    // authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
+  ],
+  poolController.signSwapTransaction
+);
+
+router.post(
+  "/sign-add-liquidity",
+  [
+    validate(poolValidation.signAddLiquidity, { keyByField: true }),
+    // authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
+  ],
+  poolController.signAddLiquidityTransaction
 );
 
 module.exports = router;
