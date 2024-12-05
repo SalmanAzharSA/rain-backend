@@ -34,7 +34,7 @@ exports.createPool = async (req, res, next) => {
       data: newPool,
     });
   } catch (ex) {
-    next(ex); // Pass error to the error handler middleware
+    next(ex);
   }
 };
 
@@ -294,5 +294,41 @@ exports.signAddLiquidityTransaction = async (req, res, next) => {
     });
   } catch (error) {
     next(error); // Pass the error to the global error handler
+  }
+};
+
+exports.declareWinner = async (req, res, next) => {
+  try {
+    // const createPoolDto = { ...req.body }
+    const { poolId } = req.params;
+    const { winnerOption } = req.body;
+    const creatorId = req.user._id;
+
+    const newPool = await poolService.declareWinner(
+      poolId,
+      winnerOption,
+      creatorId
+    );
+
+    // Check if result has an error
+    if (result.ex) {
+      return res.status(400).json({
+        statusCode: 400,
+        message: result.ex.message || result.ex,
+      });
+    }
+
+    return res.status(200).json({
+      statusCode: 200,
+      message: "Winner declared successfully",
+      data: result.data,
+    });
+    // res.status(StatusCodes.CREATED).json({
+    //   statusCode: StatusCodes.CREATED,
+    //   message: "Pool created successfully.",
+    //   data: newPool,
+    // });
+  } catch (ex) {
+    next(ex);
   }
 };

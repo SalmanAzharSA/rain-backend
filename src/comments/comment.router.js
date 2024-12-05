@@ -23,21 +23,15 @@ router.put(
 // Route to listing comments
 router.get(
   "/comments-listing",
-  (res, req, next) => {
-    console.log(" listing");
-    next();
-  },
   [
     validate(commentValidation.commentsListing),
     authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
   ],
-
   commentController.commentsListing
 );
 // Route to create comment
 router.post(
   "/create-comment",
-
   [
     validate(commentValidation.createComment),
     authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),

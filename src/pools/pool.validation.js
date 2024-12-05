@@ -179,4 +179,28 @@ module.exports = {
       }),
     }),
   },
+
+  declareWinner: {
+    params: Joi.object({
+      poolId: Joi.string()
+        .pattern(/^[0-9a-fA-F]{24}$/)
+        .required()
+        .messages({
+          "string.pattern.base": "Invalid poolId format",
+          "any.required": "poolId is required",
+        }),
+    }),
+    body: Joi.object({
+      winnerOption: Joi.object({
+        choiceIndex: Joi.number().integer().required().messages({
+          "any.required": "choiceIndex is required",
+          "number.base": "choiceIndex must be a number",
+        }),
+      })
+        .required()
+        .messages({
+          "any.required": "winnerOption is required",
+        }),
+    }),
+  },
 };

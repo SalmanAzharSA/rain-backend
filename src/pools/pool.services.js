@@ -6,10 +6,6 @@ const crypto = require("crypto");
 const configs = require("../../configs");
 const { ethers } = require("ethers"); // Use ethers.js to sign the message
 
-console.log(
-  configs.signTransactions,
-  "signTransactionssignTransactionssignTransactions"
-);
 // exports.createPool = async (createPoolDto, userId) => {
 //   try {
 //     const {
@@ -131,6 +127,33 @@ exports.createPool = async (createPoolDto, userId) => {
   }
 };
 
+// exports.declareWinner = async (
+//   poolId,
+//   winnerOption,
+//   creatorId,
+//   result = {}
+// ) => {
+//   try {
+//     const pool = await Pool.findById(poolId);
+//     if (!pool) {
+//       throw new Error("Pool not found");
+//     }
+
+//     if (pool.creator.toString() !== creatorId) {
+//       throw new Error("You are not authorized to declare the winner");
+//     }
+
+//     pool.winner = winnerOption;
+//     await pool.save();
+
+//     result.data = pool;
+//   } catch (ex) {
+//     result.ex = ex;
+//   } finally {
+//     return result;
+//   }
+// };
+
 exports.declareWinner = async (
   poolId,
   winnerOption,
@@ -143,14 +166,46 @@ exports.declareWinner = async (
       throw new Error("Pool not found");
     }
 
+    if (pool.isPrivate !== true) {
+      throw new Error("Only private pool's winner can be decided by creator.");
+    }
+
     if (pool.creator.toString() !== creatorId) {
       throw new Error("You are not authorized to declare the winner");
     }
 
-    pool.winner = winnerOption;
+    // Find the option in the pool options using winnerOption.optionIndex (choiceIndex)
+    const selectedOption = pool.options[winnerOption.choiceIndex];
+
+    if (!selectedOption) {
+      throw new Error("Invalid choiceIndex");
+    }
+
+    const message = ethers.utils.solidityKeccak256(
+      // ["address", "uint256",  ],
+      // [walletAddress, option, ]
+      ["uint256"],
+      [option]
+    );
+
+    const privateKey = configs.signTransactions.privateKey;
+    if (!privateKey) {
+      throw new Error("Private key not found in environment variables.");
+    }
+
+    const wallet = new ethers.Wallet(privateKey);
+
+    const signature = await wallet.signMessage(message);
+
+    // Save the winnerOption with the optionId and choiceIndex
+    pool.winnerOption = {
+      choiceIndex: winnerOption.choiceIndex,
+      optionId: selectedOption._id,
+    };
+
     await pool.save();
 
-    result.data = pool;
+    result.data = { pool, signature };
   } catch (ex) {
     result.ex = ex;
   } finally {

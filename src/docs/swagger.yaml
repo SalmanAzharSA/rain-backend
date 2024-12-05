@@ -319,10 +319,10 @@ paths:
                   type: string
                   example: "Error retrieving user: <error message>"
 
-  /create-comment:
+  /comments/create-comment:
     post:
       summary: "Create a new comment"
-      description: "Create a new comment for a pool or post. The comment will be associated with a pool and can be used to express user feedback or interaction."
+      description: "Create a new comment for a pool or post. The comment will be associated with a pool and can be used to express user feedback or interaction. This endpoint can also be used for replying to an existing comment by providing a parentCommentId."
       operationId: "createComment"
       tags:
         - "Comments"
@@ -333,7 +333,7 @@ paths:
             schema:
               type: object
               properties:
-                content:
+                comment:
                   type: string
                   description: "The content of the comment (e.g., 'This pool is awesome!')"
                   example: "This pool is awesome!"
@@ -341,6 +341,95 @@ paths:
                   type: string
                   format: objectid
                   description: "The ID of the pool the comment is associated with."
+                  example: "674eddb85a824475440a28a6"
+                parentCommentId:
+                  type: string
+                  format: objectid
+                  description: "The ID of the comment you want to reply to. This field is optional, use it when replying to an existing comment."
+                  example: "674eddb85a824475440a28a6"
+      responses:
+        200:
+          description: "Comment created successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Comment created successfully"
+                  data:
+                    type: object
+                    properties:
+                      commentId:
+                        type: string
+                        description: "The unique identifier for the newly created comment."
+                        example: "67485b984a2f4e38b8c976b7"
+                      content:
+                        type: string
+                        description: "The content of the comment."
+                        example: "This pool is awesome!"
+                      poolId:
+                        type: string
+                        format: objectid
+                        description: "The pool ID that the comment is linked to."
+                        example: "60d5f3a5b0a7ac001c2d51a3"
+        400:
+          description: "Bad request, missing required fields or invalid data"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: "Bad request, some required fields are missing or invalid."
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 500
+                  message:
+                    type: string
+                    example: "Error creating comment: internal server error."
+
+    post:
+      summary: "Create a new comment"
+      description: "Create a new comment for a pool or post. The comment will be associated with a pool and can be used to express user feedback or interaction."
+      operationId: "createComment"
+      tags:
+        - Comments
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  description: "The content of the comment (e.g., 'This pool is awesome!')"
+                  example: "This pool is awesome!"
+                poolId:
+                  type: string
+                  format: objectid
+                  description: "The ID of the pool the comment is associated with."
+                  example: "60d5f3a5b0a7ac001c2d51a3"
+                parentCommentId:
+                  type: string
+                  format: objectid
+                  description: "The ID of the comment u wnat to reply associated with."
                   example: "60d5f3a5b0a7ac001c2d51a3"
       responses:
         200:
@@ -398,7 +487,6 @@ paths:
                 message:
                   type: string
                   example: "Error creating comment: internal server error."
-
   /comments/comments-listing:
     get:
       tags:
@@ -450,6 +538,239 @@ paths:
           description: Bad request
         404:
           description: Comments not found
+  /comments/update-comment/{commentId}:
+    put:
+      summary: "Update a comment"
+      description: "Update the content of an existing comment. Only the user who created the comment can update it."
+      operationId: "updateComment"
+      tags:
+        - "Comments"
+      parameters:
+        - name: "commentId"
+          in: "path"
+          description: "The unique identifier of the comment to update"
+          required: true
+          schema:
+            type: string
+            format: objectid
+            example: "674efedfd7c0e96cc67cfa38"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                comment:
+                  type: string
+                  description: "The updated content of the comment."
+                  example: "This pool has great potential!"
+      responses:
+        200:
+          description: "Comment updated successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Comment updated successfully."
+                  data:
+                    type: object
+                    properties:
+                      commentId:
+                        type: string
+                        description: "The unique identifier for the updated comment."
+                        example: "674efedfd7c0e96cc67cfa38"
+                      content:
+                        type: string
+                        description: "The updated content of the comment."
+                        example: "This pool has great potential!"
+                      userId:
+                        type: string
+                        description: "The user ID of the comment creator."
+                        example: "60d5f3a5b0a7ac001c2d51a3"
+        400:
+          description: "Bad request, invalid or missing data"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: "Bad request, invalid or missing data."
+        404:
+          description: "Comment not found or you do not have permission to update this comment"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Comment not found or you do not have permission to update this comment."
+        500:
+          description: "Internal Server Error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 500
+                  message:
+                    type: string
+                    example: "Error updating comment: internal server error."
+  /comments/like/{commentId}:
+    post:
+      summary: "Like a comment"
+      description: "Allows a user to like a specific comment. A user can only like a comment once. If the user has already liked the comment, they will get an error."
+      operationId: "likeComment"
+      tags:
+        - "Comments"
+      parameters:
+        - name: "commentId"
+          in: "path"
+          description: "The unique identifier of the comment to like."
+          required: true
+          schema:
+            type: string
+            pattern: "^[0-9a-fA-F]{24}$"
+            example: "674efda6d7c0e96cc67cfa24"
+      responses:
+        200:
+          description: "Comment liked successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Comment liked successfully."
+        400:
+          description: "Bad request, invalid or missing commentId"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid commentId format."
+        404:
+          description: "Comment not found or already liked"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "You have already liked this comment."
+        500:
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Error liking comment: internal server error."
+  /comments/unlike/{commentId}:
+    post:
+      summary: "Unlike a comment"
+      description: "Allows a user to unlike a specific comment. A user can only unlike a comment they have previously liked."
+      operationId: "unlikeComment"
+      tags:
+        - "Comments"
+      parameters:
+        - name: "commentId"
+          in: "path"
+          description: "The unique identifier of the comment to unlike."
+          required: true
+          schema:
+            type: string
+            pattern: "^[0-9a-fA-F]{24}$"
+            example: "674efda6d7c0e96cc67cfa24"
+      responses:
+        200:
+          description: "Comment unliked successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Comment unliked successfully."
+        400:
+          description: "Bad request, invalid or missing commentId"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Invalid commentId format."
+        404:
+          description: "Comment not found or not previously liked"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "You have not liked this comment."
+        500:
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: false
+                  message:
+                    type: string
+                    example: "Error unliking comment: internal server error."
 
   /pools/create-pool:
     post:
@@ -1027,6 +1348,629 @@ paths:
           description: Bad request, invalid input
       '500':
         description: Internal server error
+  /pools/public-pools:
+    get:
+      summary: "Retrieve a list of public pools"
+      description: "Fetches a paginated list of public pools. Supports filtering by tags."
+      operationId: "getPublicPoolList"
+      tags:
+        - "Pools"
+      parameters:
+        - name: "limit"
+          in: "query"
+          description: "Number of pools to fetch per page. Default is 10."
+          required: false
+          schema:
+            type: integer
+            example: 10
+        - name: "offset"
+          in: "query"
+          description: "Page number for pagination. Default is 1."
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: "tag"
+          in: "query"
+          description: "Filter pools by tag. Matching is case-insensitive."
+          required: false
+          schema:
+            type: string
+            example: "movies"
+      responses:
+        200:
+          description: "Public pool list retrieved successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Public pool list retrieved successfully."
+                  data:
+                    type: object
+                    properties:
+                      pools:
+                        type: array
+                        description: "List of public pools."
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              description: "Unique identifier for the pool."
+                              example: "67485b984a2f4e38b8c976b7"
+                            question:
+                              type: string
+                              description: "The question for the pool."
+                              example: "Who will win the next soccer match?"
+                            tags:
+                              type: array
+                              description: "Tags associated with the pool."
+                              items:
+                                type: string
+                                example: "movies"
+                            options:
+                              type: array
+                              description: "Available options for the pool."
+                              items:
+                                type: object
+                                properties:
+                                  optionName:
+                                    type: string
+                                    description: "Name of the option."
+                                    example: "Team A"
+                                  optionImage:
+                                    type: string
+                                    description: "URL of the option's image."
+                                    example: "https://example.com/team-a.jpg"
+                            createdAt:
+                              type: string
+                              format: date-time
+                              description: "Creation timestamp of the pool."
+                              example: "2024-12-01T00:00:00Z"
+                            isPrivate:
+                              type: boolean
+                              description: "Indicates if the pool is private."
+                              example: false
+                      count:
+                        type: integer
+                        description: "Total number of public pools matching the criteria."
+                        example: 50
+                      pages:
+                        type: integer
+                        description: "Total number of pages."
+                        example: 5
+        400:
+          description: "Bad request, invalid or missing query parameters."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: "Bad request, invalid query parameters."
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 500
+                  message:
+                    type: string
+                    example: "An internal server error occurred."
+  /pools/pools-private:
+    get:
+      summary: "Retrieve a list of private pools"
+      description: "Fetches a paginated list of private pools. Supports filtering by tags."
+      operationId: "getPrivatePoolList"
+      tags:
+        - "Pools"
+      parameters:
+        - name: "limit"
+          in: "query"
+          description: "Number of pools to fetch per page. Default is 10."
+          required: false
+          schema:
+            type: integer
+            example: 10
+        - name: "offset"
+          in: "query"
+          description: "Page number for pagination. Default is 1."
+          required: false
+          schema:
+            type: integer
+            example: 1
+        - name: "tag"
+          in: "query"
+          description: "Filter pools by tag. Matching is case-insensitive."
+          required: false
+          schema:
+            type: string
+            example: "movies"
+      responses:
+        200:
+          description: "Private pool list retrieved successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Private pool list retrieved successfully."
+                  data:
+                    type: object
+                    properties:
+                      pools:
+                        type: array
+                        description: "List of private pools."
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              description: "Unique identifier for the pool."
+                              example: "67485b984a2f4e38b8c976b7"
+                            question:
+                              type: string
+                              description: "The question for the pool."
+                              example: "Who will win the next soccer match?"
+                            tags:
+                              type: array
+                              description: "Tags associated with the pool."
+                              items:
+                                type: string
+                                example: "movies"
+                            options:
+                              type: array
+                              description: "Available options for the pool."
+                              items:
+                                type: object
+                                properties:
+                                  optionName:
+                                    type: string
+                                    description: "Name of the option."
+                                    example: "Team A"
+                                  optionImage:
+                                    type: string
+                                    description: "URL of the option's image."
+                                    example: "https://example.com/team-a.jpg"
+                            createdAt:
+                              type: string
+                              format: date-time
+                              description: "Creation timestamp of the pool."
+                              example: "2024-12-01T00:00:00Z"
+                            isPrivate:
+                              type: boolean
+                              description: "Indicates if the pool is private."
+                              example: true
+                      count:
+                        type: integer
+                        description: "Total number of private pools matching the criteria."
+                        example: 20
+                      pages:
+                        type: integer
+                        description: "Total number of pages."
+                        example: 2
+        400:
+          description: "Bad request, invalid or missing query parameters."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: "Bad request, invalid query parameters."
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 500
+                  message:
+                    type: string
+                    example: "An internal server error occurred."
+  /pools/pool/{id}:
+    get:
+      summary: "Get a pool by its ID"
+      description: "Fetches the details of a specific pool by its unique ID."
+      operationId: "getPoolById"
+      tags:
+        - "Pools"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "The unique identifier of the pool to retrieve."
+          required: true
+          schema:
+            type: string
+            example: "67485e6eea061129838ecb7b"
+      responses:
+        200:
+          description: "Pool fetched successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Pool fetched successfully."
+                  data:
+                    type: object
+                    properties:
+                      _id:
+                        type: string
+                        description: "Unique identifier for the pool."
+                        example: "67485e6eea061129838ecb7b"
+                      question:
+                        type: string
+                        description: "The question for the pool."
+                        example: "Will the price of ETH rise in the next week?"
+                      tags:
+                        type: array
+                        description: "Tags associated with the pool."
+                        items:
+                          type: string
+                          example: "cryptocurrency"
+                      options:
+                        type: array
+                        description: "Available options for the pool."
+                        items:
+                          type: object
+                          properties:
+                            optionName:
+                              type: string
+                              description: "Name of the option."
+                              example: "Yes"
+                            optionImage:
+                              type: string
+                              description: "URL of the option's image."
+                              example: "https://example.com/yes-option.jpg"
+                      poolTypeData:
+                        type: array
+                        description: "Data specific to the pool type."
+                        items:
+                          type: object
+                          properties:
+                            minimumOracles:
+                              type: integer
+                              description: "Minimum number of oracles required for the pool."
+                              example: 3
+                            maximumOracles:
+                              type: integer
+                              description: "Maximum number of oracles allowed for the pool."
+                              example: 5
+                            rewardType:
+                              type: string
+                              enum: ["fixedAmount", "baseAmountPlusBonus"]
+                              description: "Type of reward for the pool."
+                              example: "fixedAmount"
+                            rewardDetails:
+                              type: object
+                              properties:
+                                fixedAmount:
+                                  type: object
+                                  properties:
+                                    rewardAmountPerOracle:
+                                      type: integer
+                                      description: "The reward amount per oracle."
+                                      example: 100
+                                baseAmountPlusBonus:
+                                  type: object
+                                  properties:
+                                    baseAmountPerOracle:
+                                      type: integer
+                                      description: "Base reward amount per oracle."
+                                      example: 50
+                                    associatedDealSize:
+                                      type: integer
+                                      description: "Associated deal size for the pool."
+                                      example: 1000
+                                    bonusPercentage:
+                                      type: integer
+                                      description: "Bonus percentage for the reward."
+                                      example: 10
+                      createdAt:
+                        type: string
+                        format: date-time
+                        description: "Creation timestamp of the pool."
+                        example: "2024-12-01T00:00:00Z"
+                      updatedAt:
+                        type: string
+                        format: date-time
+                        description: "Last update timestamp of the pool."
+                        example: "2024-12-02T00:00:00Z"
+                      isPrivate:
+                        type: boolean
+                        description: "Indicates if the pool is private."
+                        example: false
+        400:
+          description: "Invalid Pool ID format or missing parameter."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: "Invalid Pool ID format or missing parameter."
+        404:
+          description: "Pool not found with the given ID."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Pool not found."
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 500
+                  message:
+                    type: string
+                    example: "An internal server error occurred."
+  /pools/pool-listing-by-creator:
+    get:
+      summary: "Get pool listings by creator"
+      description: "Fetches pools created by a specific user (creator). You can filter between private and public pools using the `filter` query parameter."
+      operationId: "getPoolsByCreator"
+      tags:
+        - "Pools"
+      parameters:
+        - name: "limit"
+          in: "query"
+          description: "The number of pools to fetch per page."
+          required: true
+          schema:
+            type: integer
+            example: 10
+        - name: "offset"
+          in: "query"
+          description: "The page number or offset to fetch pools."
+          required: true
+          schema:
+            type: integer
+            example: 1
+        - name: "filter"
+          in: "query"
+          description: "Filter pools by type. Can be 'privatePools', 'publicPools', or undefined for public pools only."
+          required: false
+          schema:
+            type: string
+            enum: ["privatePools", "publicPools"]
+            example: "publicPools"
+      responses:
+        200:
+          description: "Pools fetched successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Pools fetched successfully."
+                  data:
+                    type: object
+                    properties:
+                      pools:
+                        type: array
+                        items:
+                          type: object
+                          properties:
+                            _id:
+                              type: string
+                              description: "Unique identifier for the pool."
+                              example: "67485e6eea061129838ecb7b"
+                            question:
+                              type: string
+                              description: "The question for the pool."
+                              example: "Will the price of ETH rise in the next week?"
+                            tags:
+                              type: array
+                              items:
+                                type: string
+                                example: "cryptocurrency"
+                            options:
+                              type: array
+                              items:
+                                type: object
+                                properties:
+                                  optionName:
+                                    type: string
+                                    example: "Yes"
+                                  optionImage:
+                                    type: string
+                                    example: "https://example.com/yes-option.jpg"
+                            createdAt:
+                              type: string
+                              format: date-time
+                              example: "2024-12-01T00:00:00Z"
+                            updatedAt:
+                              type: string
+                              format: date-time
+                              example: "2024-12-02T00:00:00Z"
+                            isPrivate:
+                              type: boolean
+                              example: false
+                      count:
+                        type: integer
+                        description: "Total number of pools matching the query."
+                        example: 25
+                      pages:
+                        type: integer
+                        description: "Total number of pages based on the limit."
+                        example: 3
+        400:
+          description: "Invalid query parameters."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: "Invalid parameters, please check your query."
+        500:
+          description: "Internal server error."
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 500
+                  message:
+                    type: string
+                    example: "Internal server error."
+  /pools/declare-winner:
+    post:
+      summary: "Declare the winner of a pool"
+      description: "This API allows the creator of the pool to declare the winner by selecting an option."
+      operationId: "declareWinner"
+      tags:
+        - Pools
+      parameters:
+        - in: path
+          name: poolId
+          required: true
+          description: "The ID of the pool where the winner will be declared."
+          schema:
+            type: string
+            format: objectid
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                winnerOption:
+                  type: object
+                  properties:
+                    choiceIndex:
+                      type: integer
+                      description: "The index of the option in the pool's options array."
+                      example: 1
+      responses:
+        200:
+          description: "Winner declared successfully"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 200
+                  message:
+                    type: string
+                    example: "Winner declared successfully"
+                  data:
+                    type: object
+                    properties:
+                      poolId:
+                        type: string
+                        description: "The ID of the pool"
+                        example: "67485e6eea061129838ecb7b"
+                      winnerOption:
+                        type: object
+                        properties:
+                          optionIndex:
+                            type: integer
+                            example: 1
+                          optionId:
+                            type: string
+                            description: "The ID of the option selected as the winner"
+                            example: "60d5f3a5b0a7ac001c2d51a3"
+        400:
+          description: "Bad request, invalid choiceIndex"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 400
+                  message:
+                    type: string
+                    example: "Invalid choiceIndex"
+        404:
+          description: "Pool not found or not authorized"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 404
+                  message:
+                    type: string
+                    example: "Pool not found"
+        500:
+          description: "Internal server error"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  statusCode:
+                    type: integer
+                    example: 500
+                  message:
+                    type: string
+                    example: "Error declaring winner"
 
 
 components:
@@ -1187,3 +2131,5 @@ components:
                   walletAddress:
                     type: string
                     example: "0xF2Adc1FAC6629B567cF60154C3FEA4e498E58C91"
+
+  

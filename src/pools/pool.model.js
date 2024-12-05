@@ -50,6 +50,10 @@ const poolSchema = new mongoose.Schema(
     startDate: { type: Date, required: true },
     accessCode: { type: String },
     poolTypeData: [publicPoolSchema],
+    winnerOption: {
+      choiceIndex: { type: Number, required: true },
+      optionId: { type: mongoose.Schema.Types.ObjectId, required: true },
+    },
   },
   { timestamps: true }
 );

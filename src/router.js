@@ -29,7 +29,7 @@ exports.initRoutes = (app) => {
   );
   /*----------------------------------*/
   app.use("/users", usersRouter);
-  app.use("/investments", investmentsRouter);
+  // app.use("/investments", investmentsRouter);
   app.use("/pools", poolsRouter);
   app.use("/metadata", metadataRouter);
   app.use("/votes", votesRouter);

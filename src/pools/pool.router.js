@@ -58,7 +58,7 @@ router.get(
 router.get(
   "/pool-listing-by-creator",
   [
-    // validate(poolValidation.accessCodeValidation, { keyByField: true }),
+    validate(poolValidation.poolListingByCreator, { keyByField: true }),
     authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
   ],
   poolController.poolListingByCreator
@@ -86,6 +86,15 @@ router.post(
   "/sign-add-liquidity",
   [
     validate(poolValidation.signAddLiquidity, { keyByField: true }),
+    // authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
+  ],
+  poolController.signAddLiquidityTransaction
+);
+
+router.post(
+  "/declare-winner",
+  [
+    validate(poolValidation.declareWinner, { keyByField: true }),
     // authWithPassport(PASSPORT_STRATEGIES.jwt, { session: false }),
   ],
   poolController.signAddLiquidityTransaction
