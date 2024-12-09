@@ -58,10 +58,10 @@ exports.findUserBywalletAddress = async (walletAddress) => {
 exports.registerwithWalletAddress = async (userData, result = {}) => {
   try {
     // Validate required fields
-    if (!userData.walletAddress || !userData.name) {
+    if (!userData.walletAddress) {
       result.error = {
         status: 400,
-        message: "Wallet address and name are required",
+        message: "Wallet address required",
       };
       return result;
     }

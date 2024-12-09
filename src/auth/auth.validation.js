@@ -14,13 +14,13 @@ module.exports = {
   registerwithWalletAddress: {
     body: Joi.object({
       walletAddress: Joi.string().trim().required(),
-      name: Joi.string().required(),
       sign: Joi.string().required(),
-      bio: Joi.string().optional(),
-      object: Joi.object({
-        address: Joi.string().required(),
-        name: Joi.string().required(),
-      }).required(),
+      // name: Joi.string().required(),
+      // bio: Joi.string().optional(),
+      // object: Joi.object({
+      //   address: Joi.string().required(),
+      //   name: Joi.string().required(),
+      // }).required(),
     }),
   },
 

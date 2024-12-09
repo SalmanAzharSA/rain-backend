@@ -22,13 +22,13 @@ security:
 
 paths:
 
-  /auth/register-with-walletAddress:
+  /auth/login-or-register-with-walletAddress:
     post:
       tags:
         - Auth
-      summary: Register user with wallet address
-      description: Registers a new user by verifying their wallet address using a signed message.
-      operationId: registerWithWalletAddress
+      summary: Login or Register user with wallet address
+      description: Logs in an existing user or registers a new user by verifying their wallet address using a signed message.
+      operationId: loginOrRegisterWithWalletAddress
       requestBody:
         required: true
         content:
@@ -38,31 +38,15 @@ paths:
               properties:
                 sign:
                   type: string
-                  description: The signed message to verify the user's wallet address
-                  example: "0x..."
-                name:
+                  description: The signed message to verify the user's wallet address.
+                  example: "0x5e35...fdb1"
+                walletAddress:
                   type: string
-                  description: The name of the user
-                  example: "John Doe"
-                bio:
-                  type: string
-                  description: The bio of the user (optional)
-                  example: "Web3 enthusiast"
-                object:
-                  type: object
-                  description: The object containing the message to be signed
-                  properties:
-                    address:
-                      type: string
-                      description: The wallet address of the user
-                      example: "0x1234567890abcdef1234567890abcdef12345678"
-                    message:
-                      type: string
-                      description: The message to be signed by the user
-                      example: "Sign this message to verify ownership of the wallet."
+                  description: The wallet address of the user.
+                  example: "0x123abc456def789gh"
       responses:
         200:
-          description: User registered successfully
+          description: User logged in or registered successfully
           content:
             application/json:
               schema:
@@ -73,62 +57,83 @@ paths:
                     example: true
                   msg:
                     type: string
-                    example: "User Registered"
+                    description: Message indicating success or failure.
+                    example: "User Logged In"  # or "User Registered"
                   token:
                     type: string
-                    example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjYwYjZkNzI4NmNhZTYzZTJiODMzNjEwZGVkYTA1ZTUzYTciLCJpYXQiOiJhbG9n..."
+                    description: JWT token for the authenticated user.
+                    example: "jwt-token-here"
                   user:
                     type: object
                     properties:
                       _id:
                         type: string
-                        example: "60b6c72b7c71bf76c5d4be65"
-                      name:
-                        type: string
-                        example: "John Doe"
+                        description: User's unique ID.
+                        example: "user123"
                       walletAddress:
                         type: string
-                        example: "0x1234567890abcdef1234567890abcdef12345678"
+                        description: The wallet address of the user.
+                        example: "0x123abc456def789gh"
+                      name:
+                        type: string
+                        description: The name of the user.
+                        example: "John Doe"
         400:
-          description: Bad request, missing required fields
+          description: Bad Request - Missing wallet address or signature
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: boolean
+                    example: false
                   msg:
                     type: string
-                    example: "All inputs are required"
+                    description: Error message explaining what is missing.
+                    example: "Wallet address and signature are required"
         401:
-          description: Unauthorized, signature verification failed or wallet address not correct
+          description: Unauthorized - Signature verification failed
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: boolean
+                    example: false
                   msg:
                     type: string
-                    example: "Sign not verified"
+                    description: Error message explaining why the signature verification failed.
+                    example: "Signature verification failed: signer address does not match wallet address"
         409:
-          description: Conflict, user already exists
+          description: Conflict - User already exists
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: boolean
+                    example: false
                   msg:
                     type: string
+                    description: Error message indicating user already exists.
                     example: "User already exists"
         500:
-          description: Internal Server Error, something went wrong on the server
+          description: Internal Server Error
           content:
             application/json:
               schema:
                 type: object
                 properties:
+                  status:
+                    type: boolean
+                    example: false
                   msg:
                     type: string
-                    example: "Error during registration: <error message>"
+                    description: Error message explaining what went wrong.
+                    example: "Error during login or registration: [error message]"
   /auth/login-with-walletAddress:
     post:
       tags:
@@ -837,50 +842,29 @@ paths:
                   format: date-time
                   description: "The start date and time for the pool"
                   example: "2024-12-10T12:00:00Z"
+                endDate:
+                  type: string
+                  format: date-time
+                  description: "The start date and time for the pool"
+                  example: "2024-12-10T12:00:00Z"
                 poolTypeData:
                   type: array
                   description: "Data specific to public pools"
                   items:
                     type: object
                     properties:
-                      minimumOracles:
+                      dealSize:
                         type: number
                         description: "Minimum number of oracles required for the pool"
                         example: 3
-                      maximumOracles:
+                      numberOfOracles:
                         type: number
                         description: "Maximum number of oracles allowed for the pool"
                         example: 5
-                      rewardType:
-                        type: string
-                        enum: ["fixedAmount", "baseAmountPlusBonus"]
-                        description: "Type of reward for the pool"
-                        example: "fixedAmount"
-                      rewardDetails:
-                        type: object
-                        properties:
-                          fixedAmount:
-                            type: object
-                            properties:
-                              rewardAmountPerOracle:
-                                type: number
-                                description: "The reward amount per oracle"
-                                example: 100
-                          baseAmountPlusBonus:
-                            type: object
-                            properties:
-                              baseAmountPerOracle:
-                                type: number
-                                description: "Base reward amount per oracle"
-                                example: 50
-                              associatedDealSize:
-                                type: number
-                                description: "Associated deal size for the pool"
-                                example: 1000
-                              bonusPercentage:
-                                type: number
-                                description: "Bonus percentage for the reward"
-                                example: 10
+                      rewardPerOracle:
+                        type: number
+                        description: "Maximum number of oracles allowed for the pool"
+                        example: 5  
                       timeZone:
                         type: string
                         description: "Time zone for the pool"

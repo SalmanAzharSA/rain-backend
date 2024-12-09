@@ -46,40 +46,76 @@ exports.signin = async (req, res, next) => {
 //   }
 // };
 
-exports.registerWithWalletAddress = async (req, res, next) => {
+// exports.registerWithWalletAddress = async (req, res, next) => {
+//   try {
+//     const { sign, name, bio, object } = req.body;
+
+//     // console.log(req.body, "REQ?BODYYY");
+//     if (typeof object === "string") {
+//       object = JSON.parse(object);
+//     }
+//     let walletAddress = object.address;
+
+//     // let picture = "";
+
+//     // // Handle file upload
+//     // if (req.file) {
+//     //   if (req.file.location) {
+//     //     picture = req.file.location;
+//     //   }
+//     // }
+
+//     // Validate required fields
+//     // if (!(sign && name && walletAddress)) {
+
+//     if (!(sign && walletAddress)) {
+//       return res.status(400).send("All inputs are required");
+//     }
+
+//     const registerData = {
+//       walletAddress,
+//       sign,
+//       name,
+//       bio,
+//       object,
+//     };
+//     // console.log(registerData, "registerData");
+//     const result = await authService.registerwithWalletAddress(
+//       registerData,
+//       sign
+//     );
+
+//     if (result.error) {
+//       return res
+//         .status(result.error.status)
+//         .json({ msg: result.error.message });
+//     }
+
+//     return res.status(200).json({
+//       status: true,
+//       msg: "User Registered",
+//       token: result.data.token,
+//       user: result.data.user,
+//     });
+//   } catch (error) {
+//     console.log(error, "RTOO");
+//     next(error);
+//   }
+// };
+
+exports.loginOrRegisterWithWalletAddress = async (req, res, next) => {
   try {
-    const { sign, name, bio, object } = req.body;
-
-    // console.log(req.body, "REQ?BODYYY");
-    if (typeof object === "string") {
-      object = JSON.parse(object);
-    }
-    let walletAddress = object.address;
-
-    // let picture = "";
-
-    // // Handle file upload
-    // if (req.file) {
-    //   if (req.file.location) {
-    //     picture = req.file.location;
-    //   }
-    // }
+    const { sign, walletAddress } = req.body;
 
     // Validate required fields
-    if (!(sign && name && walletAddress)) {
-      return res.status(400).send("All inputs are required");
+    if (!(sign && walletAddress)) {
+      return res.status(400).send("Wallet address and signature are required");
     }
+    console.log("sign::", sign, "walletAddress::", walletAddress);
 
-    const registerData = {
+    // Prepare the data to be passed to the service
+    const result = await authService.loginOrRegisterWithWalletAddress(
       walletAddress,
-      sign,
-      name,
-      bio,
-      object,
-    };
-    // console.log(registerData, "registerData");
-    const result = await authService.registerwithWalletAddress(
-      registerData,
       sign
     );
 
@@ -91,13 +127,13 @@ exports.registerWithWalletAddress = async (req, res, next) => {
 
     return res.status(200).json({
       status: true,
-      msg: "User Registered",
+      msg: result.data.message,
       token: result.data.token,
       user: result.data.user,
     });
   } catch (error) {
-    console.log(error, "RTOO");
-    next(error);
+    console.error(error, "Error during login or registration");
+    next(error); // Passing the error to the global error handler
   }
 };
 

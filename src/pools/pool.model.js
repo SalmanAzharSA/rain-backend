@@ -2,25 +2,26 @@ const mongoose = require("mongoose");
 
 // Subschema for Public Pools
 const publicPoolSchema = new mongoose.Schema({
-  minimumOracles: { type: Number, required: true },
-  maximumOracles: { type: Number, required: true },
-  rewardType: {
-    type: String,
-    enum: ["fixedAmount", "baseAmountPlusBonus"],
-    required: true,
-  },
-  rewardDetails: {
-    fixedAmount: {
-      rewardAmountPerOracle: { type: Number },
-    },
-    baseAmountPlusBonus: {
-      baseAmountPerOracle: { type: Number },
-      associatedDealSize: { type: Number },
-      bonusPercentage: { type: Number },
-    },
-  },
+  dealSize: { type: Number, required: true },
+  rewardPerOracle: { type: Number, required: true },
+  numberOfOracles: { type: Number, required: true },
   timeZone: { type: String, required: true },
   duration: { type: Number, required: true }, // duration must be in days
+  // rewardType: {
+  //   type: String,
+  //   enum: ["fixedAmount", "baseAmountPlusBonus"],
+  //   required: true,
+  // },
+  // rewardDetails: {
+  //   fixedAmount: {
+  //     rewardAmountPerOracle: { type: Number },
+  //   },
+  //   // baseAmountPlusBonus: {
+  //   //   baseAmountPerOracle: { type: Number },
+  //   //   associatedDealSize: { type: Number },
+  //   //   bonusPercentage: { type: Number },
+  //   // },
+  // },
 });
 
 const poolSchema = new mongoose.Schema(
@@ -48,6 +49,7 @@ const poolSchema = new mongoose.Schema(
     isPrivate: { type: Boolean, default: false },
     liquidityMax: { type: Number, required: true },
     startDate: { type: Date, required: true },
+    endDate: { type: Date, required: true },
     accessCode: { type: String },
     poolTypeData: [publicPoolSchema],
     winnerOption: {

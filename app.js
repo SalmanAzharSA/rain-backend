@@ -6,10 +6,10 @@ const redisClient = require("./helpers/redis");
 const { registerSubscribers } = require("./subscribers");
 const passportHelper = require("./src/common/auth/passport");
 const app = express();
+// const cronJobs = require("./src/crons-jobs/cron-index"); // Importing cron jobs
 
 (async () => {
   // initialize redis store
-
 
   // Check if Redis should be used
   if (process.env.USE_REDIS === "true") {
@@ -19,7 +19,6 @@ const app = express();
   } else {
     console.log("Redis initialization skipped.");
   }
-
 
   // await redisClient.connect();
   // initialize database

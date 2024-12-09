@@ -18,16 +18,16 @@ router.post(
 );
 
 router.post(
-  "/register-with-walletAddress",
+  "/login-or-register-with-walletAddress",
   (req, res, next) => {
-    console.log("register-with-walletAddress");
+    console.log("login-or-register-with-walletAddress");
     next();
   },
   [
     // validate(authValidation.registerwithWalletAddress, { keyByField: true }),
     // authWithPassport(PASSPORT_STRATEGIES.local, { session: false }),
   ],
-  authController.registerWithWalletAddress
+  authController.loginOrRegisterWithWalletAddress
 );
 
 router.post(

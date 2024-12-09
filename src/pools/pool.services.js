@@ -215,7 +215,7 @@ exports.declareWinner = async (
 
 exports.getPublicPoolList = async (getPoolsDto, result = {}) => {
   try {
-    const { limit = 10, offset = 1, tag } = getPoolsDto;
+    const { limit = 10, offset = 1, tag, sortBy } = getPoolsDto;
     console.log(getPoolsDto, "getPoolsDtoInsercice");
 
     const query = { isPrivate: false };
@@ -227,8 +227,8 @@ exports.getPublicPoolList = async (getPoolsDto, result = {}) => {
       Pool.find(query)
         .skip((offset - 1) * limit)
         .limit(limit)
-        // .sort({ [sortBy]: createdAt - 1 }), // Sort by `sortBy` field (default is createdAt)
-        .sort({ createdAt: -1 }),
+        .sort({ [sortBy]: createdAt - 1 }), // Sort by `sortBy` field (default is createdAt)
+      // .sort({ createdAt: -1 }),
 
       Pool.countDocuments(query),
     ]);
